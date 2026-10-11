@@ -1,7 +1,7 @@
 FROM debian:bookworm-slim
 
 RUN apt-get update -qq && \
-    apt-get install -y -qq gcc-riscv64-unknown-elf binutils-riscv64-unknown-elf make clang git && \
+    apt-get install -y -qq gcc-riscv64-unknown-elf binutils-riscv64-unknown-elf make clang git debianutils && \
     rm -rf /var/lib/apt/lists/*
 
 WORKDIR /src

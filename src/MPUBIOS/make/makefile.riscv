@@ -18,9 +18,9 @@ FPIC = no
 # SHARED_LIB     = yes | no
 SHARED_LIB = no
 # COMPILER       = g++ | gcc
-COMPILER = gcc
+COMPILER ?= gcc
 
-ifeq (,$(shell which $(GCC_PREFIX)gcc))
+ifeq (,$(shell which $(GCC_PREFIX)gcc 2>/dev/null || command -v $(GCC_PREFIX)gcc 2>/dev/null))
 ${error - RISC-V GCC tools not available on PATH}
 endif
 
