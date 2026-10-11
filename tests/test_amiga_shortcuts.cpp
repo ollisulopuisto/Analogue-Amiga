@@ -10,10 +10,11 @@ int main() {
     PocketShortcuts shortcuts;
     std::vector<std::pair<uint8_t, bool>> events;
 
-    auto callback = [&](uint8_t code, bool down) {
-        events.push_back({code, down});
+    auto callback = [](void *userdata, uint8_t code, bool down) {
+        auto *ev = static_cast<std::vector<std::pair<uint8_t, bool>>*>(userdata);
+        ev->push_back({code, down});
     };
-    shortcuts.set_callback(callback);
+    shortcuts.set_callback(callback, &events);
 
     printf("Running test: Unmodified X -> Space, Y -> Return...\n");
     // Press X (bit 6)

@@ -4,7 +4,8 @@
 static PocketShortcuts s_shortcuts;
 static bool s_initialized = false;
 
-static void amiga_key_callback(uint8_t scancode, bool down) {
+static void amiga_key_callback(void *userdata, uint8_t scancode, bool down) {
+    (void)userdata;
     if (down) {
         HPS_spi_uio_cmd8(UIO_KEYBOARD, scancode);
     } else {

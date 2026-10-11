@@ -23,20 +23,19 @@
 #endif
 
 #ifdef __cplusplus
-#include <functional>
-
 class PocketShortcuts {
 public:
-    using KeyCallback = std::function<void(uint8_t scancode, bool down)>;
+    typedef void (*KeyCallback)(void *userdata, uint8_t scancode, bool down);
 
-    PocketShortcuts() : callback_(nullptr), suppress_joystick_(false) {
+    PocketShortcuts() : callback_(nullptr), userdata_(nullptr), suppress_joystick_(false) {
         for (int i = 0; i < MAX_KEYS; i++) {
             active_keys_[i] = 0;
         }
     }
 
-    void set_callback(KeyCallback cb) {
+    void set_callback(KeyCallback cb, void *userdata = nullptr) {
         callback_ = cb;
+        userdata_ = userdata;
     }
 
     bool suppress_joystick() const {
@@ -107,7 +106,7 @@ public:
                     }
                 }
                 if (!found) {
-                    if (callback_) callback_(active_keys_[i], false);
+                    if (callback_) callback_(userdata_, active_keys_[i], false);
                     active_keys_[i] = 0;
                 }
             }
@@ -127,7 +126,7 @@ public:
                 for (int i = 0; i < MAX_KEYS; i++) {
                     if (active_keys_[i] == 0) {
                         active_keys_[i] = desired[j];
-                        if (callback_) callback_(desired[j], true);
+                        if (callback_) callback_(userdata_, desired[j], true);
                         break;
                     }
                 }
@@ -138,7 +137,7 @@ public:
     void release_all() {
         for (int i = 0; i < MAX_KEYS; i++) {
             if (active_keys_[i] != 0) {
-                if (callback_) callback_(active_keys_[i], false);
+                if (callback_) callback_(userdata_, active_keys_[i], false);
                 active_keys_[i] = 0;
             }
         }
@@ -148,6 +147,7 @@ private:
     static const int MAX_KEYS = 8;
     uint8_t active_keys_[MAX_KEYS];
     KeyCallback callback_;
+    void *userdata_;
     bool suppress_joystick_;
 };
 
