@@ -8,7 +8,7 @@ SW_ROOT := $(abspath $(MAKE_DIR)/..)
 # RISC-V Flags
 ###############################################################################
 # GCC_PREFIX     = arch-toolchain-
-GCC_PREFIX=riscv32-unknown-elf-
+GCC_PREFIX ?= riscv64-unknown-elf-
 # ARCH_CFLAGS
 ARCH_CFLAGS=
 # ARCH_LFLAGS
@@ -18,9 +18,10 @@ FPIC = no
 # SHARED_LIB     = yes | no
 SHARED_LIB = no
 # COMPILER       = g++ | gcc
-COMPILER = gcc
+COMPILER ?= g++
+CC_COMPILER ?= gcc
 
-ifeq (,$(shell which $(GCC_PREFIX)gcc))
+ifeq (,$(shell which $(GCC_PREFIX)gcc 2>/dev/null || command -v $(GCC_PREFIX)gcc 2>/dev/null))
 ${error - RISC-V GCC tools not available on PATH}
 endif
 
@@ -36,7 +37,7 @@ BASE_ADDRESS ?= 0x00000000
 MEM_SIZE     ?= 131072
 
 ARCH_CFLAGS += -DMACHINE_FPGA
-ARCH_LFLAGS += -nostartfiles -nodefaultlibs -lgcc
+ARCH_LFLAGS += -march=rv32imac_zicsr -mabi=ilp32 -nostartfiles -nodefaultlibs -lgcc -Wl,-melf32lriscv
 
 ARCH_CFLAGS += -DCONFIG_USE_LOCAL_STRING_H
 ARCH_CFLAGS += -ffunction-sections -fdata-sections

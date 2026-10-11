@@ -54,14 +54,17 @@ EXE_DIR      ?= build.$(ARCH_TGT_DIR).$(TARGET)/
 QUIET        ?= yes
 
 GCC_PREFIX   ?=
-COMPILER     ?= gcc
+COMPILER     ?= g++
+CC_COMPILER  ?= gcc
 
 ifeq ($(QUIET),yes)
-GCC          = @$(GCC_PREFIX)$(COMPILER)
+CXX          = @$(GCC_PREFIX)$(COMPILER)
+CC           = @$(GCC_PREFIX)$(CC_COMPILER)
 OBJCOPY      = @$(GCC_PREFIX)objcopy
 OBJDUMP      = @$(GCC_PREFIX)objdump
 else
-GCC          = $(GCC_PREFIX)$(COMPILER)
+CXX          = $(GCC_PREFIX)$(COMPILER)
+CC           = $(GCC_PREFIX)$(CC_COMPILER)
 OBJCOPY      = $(GCC_PREFIX)objcopy
 OBJDUMP      = $(GCC_PREFIX)objdump
 endif
@@ -93,9 +96,12 @@ LFLAGS       += $(EXTRA_LIBS)
 src2obj       = $(OBJ_DIR)$(patsubst %$(suffix $(1)),%.o,$(notdir $(1)))
 src2dep       = $(DEP_DIR)$(patsubst %,%.d,$(notdir $(1)))
 
-SRC          := $(EXTRA_SRC) $(foreach src,$(SRC_DIR),$(wildcard $(src)/*.cpp)) $(foreach src,$(SRC_DIR),$(wildcard $(src)/*.c))
-OBJ          ?= $(foreach src,$(SRC),$(call src2obj,$(src)))
-DEPS         ?= $(foreach src,$(SRC),$(call src2dep,$(src)))
+CPPSRC       := $(sort $(foreach src,$(SRC_DIR),$(wildcard $(src)/*.cpp)))
+CSRC         := $(sort $(foreach src,$(SRC_DIR),$(wildcard $(src)/*.c)))
+ASRC         := $(sort $(EXTRA_SRC) $(foreach src,$(SRC_DIR),$(wildcard $(src)/*.S)))
+SRC          := $(CPPSRC) $(CSRC) $(ASRC)
+OBJ          ?= $(sort $(foreach src,$(SRC),$(call src2obj,$(src))))
+DEPS         ?= $(sort $(foreach src,$(SRC),$(call src2dep,$(src))))
 
 ###############################################################################
 # Rules: Compilation macro
@@ -103,10 +109,22 @@ DEPS         ?= $(foreach src,$(SRC),$(call src2dep,$(src)))
 # Dependancy generation
 DEPFLAGS      = -MT $$@ -MMD -MP -MF $(call src2dep,$(1))
 
+define template_cpp
+$(call src2obj,$(1)): $(1) | $(OBJ_DIR) $(DEP_DIR)
+	@echo "# Compiling $$(notdir $(1))"
+	$(CXX) $(CFLAGS) $(DEPFLAGS) -c $$< -o $$@
+endef
+
 define template_c
 $(call src2obj,$(1)): $(1) | $(OBJ_DIR) $(DEP_DIR)
-	@echo "# Compiling $(notdir $(1))"
-	$(GCC) $(CFLAGS) $(DEPFLAGS) -c $$< -o $$@
+	@echo "# Compiling $$(notdir $(1))"
+	$(CC) $(CFLAGS) $(DEPFLAGS) -c $$< -o $$@
+endef
+
+define template_s
+$(call src2obj,$(1)): $(1) | $(OBJ_DIR) $(DEP_DIR)
+	@echo "# Compiling $$(notdir $(1))"
+	$(CC) $(CFLAGS) $(DEPFLAGS) -c $$< -o $$@
 endef
 
 ###############################################################################
@@ -129,11 +147,13 @@ all: $(BUILD_TARGETS)
 $(OBJ_DIR) $(DEP_DIR) $(EXE_DIR):
 	@mkdir -p $@
 
-$(foreach src,$(SRC),$(eval $(call template_c,$(src))))
+$(foreach src,$(CPPSRC),$(eval $(call template_cpp,$(src))))
+$(foreach src,$(CSRC),$(eval $(call template_c,$(src))))
+$(foreach src,$(ASRC),$(eval $(call template_s,$(src))))
 
 $(EXE_DIR)$(TARGET): $(OBJ) | $(EXE_DIR)
 	@echo "# Building $(notdir $@)"
-	$(GCC) -o $(EXE_DIR)$(TARGET) $(OBJ) $(LFLAGS)
+	$(CXX) -o $(EXE_DIR)$(TARGET) $(OBJ) $(LFLAGS)
 
 $(EXE_DIR)$(TARGET).bin: $(EXE_DIR)$(TARGET)
 	@echo "# Building $(notdir $@)"

@@ -1,0 +1,28 @@
+name: Build Amiga MPU BIOS
+
+on:
+  push:
+    branches: [ main, feature/** ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  test-and-build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Build Docker image and run build
+        run: |
+          docker build -t amiga-builder .
+          docker run --rm -v ${{ github.workspace }}:/src amiga-builder
+
+      - name: Upload MPU BIOS Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: amiga_mpu_bios
+          path: src/MPUBIOS/app/build.riscv.amiga_mpu_bios/amiga_mpu_bios.bin
