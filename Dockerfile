@@ -1,7 +1,7 @@
 FROM debian:bookworm-slim
 
 RUN apt-get update -qq && \
-    apt-get install -y -qq gcc-riscv64-unknown-elf binutils-riscv64-unknown-elf make clang git debianutils && \
+    apt-get install -y -qq gcc-riscv64-unknown-elf binutils-riscv64-unknown-elf libnewlib-dev make clang git debianutils && \
     rm -rf /var/lib/apt/lists/* && \
     bash -c 'for f in /usr/bin/riscv64-unknown-elf-*; do ln -s "$f" "${f/riscv64/riscv32}"; done'
 
