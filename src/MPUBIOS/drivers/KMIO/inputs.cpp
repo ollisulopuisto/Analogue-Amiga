@@ -25,6 +25,7 @@
 
 
 #include "inputs.h"
+#include "pocket_shortcuts.h"
 int interupt_amount_timer = 0;
 unsigned int mouse_counter={0};
 signed short x_count = 0;
@@ -292,7 +293,14 @@ void input_update() {
     if (((CONTROLLER_KEY_REG(3)>>28) == 0x4)) update_keyboard_inputs(); // We want to update the keyboard 6 time every
     if ((((AFP_REGISTOR(5)>>24)) == 0x80) | ((AFP_REGISTOR(5)>>24) == 0xa0)) {
       update_mouse_inputs();
-    } 
+    }
+    bool is_cd32 = (((AFP_REGISTOR(5) >> 28) & 0x2) != 0);
+    pocket_amiga_shortcuts_update(CONTROLLER_KEY_REG(1), is_cd32, keyboard_osd_showing);
+    if (pocket_amiga_shortcuts_suppress_joystick()) {
+      CORE_OUTPUT_REGISTOR() |= 0x00000010;
+    } else if (!mouse_enabled && !keyboard_osd_showing) {
+      CORE_OUTPUT_REGISTOR() &= ~0x00000010;
+    }
     return;
   }
 
