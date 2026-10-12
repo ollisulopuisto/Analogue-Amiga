@@ -12,14 +12,26 @@
         "persist": true,
         "defaultval": 0,
         "options": [
-          { "value": 0, "name": "Standard (D-pad & B)" },
-          { "value": 1, "name": "Platformer (Btn B Jump)" },
-          { "value": 2, "name": "Driving (L=Brake, R=Gas)" },
-          { "value": 3, "name": "Mouse (D-pad & A/B Clicks)" }
+          {
+            "value": 0,
+            "name": "Standard: D-pad / B"
+          },
+          {
+            "value": 1,
+            "name": "Platformer: Btn B Jump"
+          },
+          {
+            "value": 2,
+            "name": "Driving: L Brake R Gas"
+          },
+          {
+            "value": 3,
+            "name": "Mouse: D-pad / Clicks"
+          }
         ]
       },
       {
-        "name": "Port 1/Port 2",
+        "name": "Port 1 / Port 2",
         "id": 123,
         "type": "list",
         "enabled": true,
@@ -28,12 +40,30 @@
         "defaultval": 5,
         "mask": "0x0FFFFFFF",
         "options": [
-          { "value": "0x0000", "name": "Joystick 1/Joystick 2" },
-          { "value": "0x40000000", "name": "Joystick 2/Joystick 1" },
-          { "value": "0x80000000", "name": "Mouse/Joystick" },
-          { "value": "0x20000000", "name": "CD32 1/CD32 2" },
-          { "value": "0x30000000", "name": "CD32 2/CD32 1" },
-          { "value": "0xa0000000", "name": "Mouse/CD32" }
+          {
+            "value": "0x0000",
+            "name": "Joystick 1 / Joy 2"
+          },
+          {
+            "value": "0x40000000",
+            "name": "Joystick 2 / Joy 1"
+          },
+          {
+            "value": "0x80000000",
+            "name": "Mouse / Joystick"
+          },
+          {
+            "value": "0x20000000",
+            "name": "CD32 1 / CD32 2"
+          },
+          {
+            "value": "0x30000000",
+            "name": "CD32 2 / CD32 1"
+          },
+          {
+            "value": "0xa0000000",
+            "name": "Mouse / CD32"
+          }
         ]
       },
       {
@@ -54,41 +84,54 @@
         }
       },
       {
-        "name": "Base: X / Y buttons",
-        "id": 200,
-        "type": "list",
-        "enabled": true,
-        "defaultval": 0,
-        "options": [
-          { "value": 0, "name": "X=Space, Y=Return" }
-        ],
-        "writeonly": true
-      },
-      {
         "name": "L-Hold: Shortcuts",
         "id": 201,
         "type": "list",
         "enabled": true,
         "defaultval": 0,
         "options": [
-          { "value": 0, "name": "SELECT: Swap Joy 1/2" },
-          { "value": 1, "name": "D-Pad: F1 / F3 / F5 / F7" },
-          { "value": 2, "name": "A/B: Space / Return" },
-          { "value": 3, "name": "X/Y: Esc / 1" }
+          {
+            "value": 0,
+            "name": "SELECT: Swap Joy 1/2"
+          },
+          {
+            "value": 1,
+            "name": "D-Pad: F1 F3 F5 F7"
+          },
+          {
+            "value": 2,
+            "name": "A/B: Space / Return"
+          },
+          {
+            "value": 3,
+            "name": "X/Y: Esc / 1"
+          }
         ],
         "writeonly": true
       },
       {
-        "name": "L+R Hold: Shifted",
+        "name": "L / R Hold: Shifted",
         "id": 202,
         "type": "list",
         "enabled": true,
         "defaultval": 0,
         "options": [
-          { "value": 0, "name": "D-Pad: F2 / F4 / F6 / F8" },
-          { "value": 1, "name": "A/B: Space / N" },
-          { "value": 2, "name": "X/Y: Y / 2" },
-          { "value": 3, "name": "START: Commodore (C=)" }
+          {
+            "value": 0,
+            "name": "D-Pad: F2 F4 F6 F8"
+          },
+          {
+            "value": 1,
+            "name": "A/B: Space / N"
+          },
+          {
+            "value": 2,
+            "name": "X/Y: Y / 2"
+          },
+          {
+            "value": 3,
+            "name": "START: Commodore key"
+          }
         ],
         "writeonly": true
       },
@@ -102,14 +145,38 @@
         "defaultval": 6,
         "mask": "0xFFFFFFEC",
         "options": [
-          { "value": "0x0000", "name": "ECS/PAL/Std" },
-          { "value": "0x0002", "name": "ECS/NTSC/Std" },
-          { "value": "0x0001", "name": "ECS/PAL/Turbo" },
-          { "value": "0x0003", "name": "ECS/NTSC/Turbo" },
-          { "value": "0x0010", "name": "AGA/PAL/Std" },
-          { "value": "0x0012", "name": "AGA/NTSC/Std" },
-          { "value": "0x0011", "name": "AGA/PAL/Turbo" },
-          { "value": "0x0013", "name": "AGA/NTSC/Turbo" }
+          {
+            "value": "0x0000",
+            "name": "ECS PAL Std"
+          },
+          {
+            "value": "0x0002",
+            "name": "ECS NTSC Std"
+          },
+          {
+            "value": "0x0001",
+            "name": "ECS PAL Turbo"
+          },
+          {
+            "value": "0x0003",
+            "name": "ECS NTSC Turbo"
+          },
+          {
+            "value": "0x0010",
+            "name": "AGA PAL Std"
+          },
+          {
+            "value": "0x0012",
+            "name": "AGA NTSC Std"
+          },
+          {
+            "value": "0x0011",
+            "name": "AGA PAL Turbo"
+          },
+          {
+            "value": "0x0013",
+            "name": "AGA NTSC Turbo"
+          }
         ]
       },
       {
@@ -122,10 +189,22 @@
         "defaultval": 3,
         "mask": "0xFFFFfff8",
         "options": [
-          { "value": "0x0000", "name": "68000 CPU" },
-          { "value": "0x0001", "name": "68010 CPU" },
-          { "value": "0x0003", "name": "68020 CPU - No Cache" },
-          { "value": "0x0007", "name": "68020 CPU - Cache" }
+          {
+            "value": "0x0000",
+            "name": "68000 CPU"
+          },
+          {
+            "value": "0x0001",
+            "name": "68010 CPU"
+          },
+          {
+            "value": "0x0003",
+            "name": "68020 No Cache"
+          },
+          {
+            "value": "0x0007",
+            "name": "68020 Cache"
+          }
         ]
       },
       {
@@ -138,10 +217,22 @@
         "defaultval": 3,
         "mask": "0xFFFFfffc",
         "options": [
-          { "value": "0x00", "name": "512 kB" },
-          { "value": "0x01", "name": "1 MB" },
-          { "value": "0x02", "name": "1.5 MB" },
-          { "value": "0x03", "name": "2 MB" }
+          {
+            "value": "0x00",
+            "name": "512 kB"
+          },
+          {
+            "value": "0x01",
+            "name": "1 MB"
+          },
+          {
+            "value": "0x02",
+            "name": "1.5 MB"
+          },
+          {
+            "value": "0x03",
+            "name": "2 MB"
+          }
         ]
       },
       {
@@ -154,12 +245,30 @@
         "defaultval": 5,
         "mask": "0xFFFFff8f",
         "options": [
-          { "value": "0x0000", "name": "None" },
-          { "value": "0x0010", "name": "2 MB" },
-          { "value": "0x0020", "name": "4 MB" },
-          { "value": "0x0030", "name": "8 MB" },
-          { "value": "0x0040", "name": "16 MB" },
-          { "value": "0x0050", "name": "32 MB" }
+          {
+            "value": "0x0000",
+            "name": "None"
+          },
+          {
+            "value": "0x0010",
+            "name": "2 MB"
+          },
+          {
+            "value": "0x0020",
+            "name": "4 MB"
+          },
+          {
+            "value": "0x0030",
+            "name": "8 MB"
+          },
+          {
+            "value": "0x0040",
+            "name": "16 MB"
+          },
+          {
+            "value": "0x0050",
+            "name": "32 MB"
+          }
         ]
       },
       {
@@ -172,10 +281,22 @@
         "defaultval": 0,
         "mask": "0xFFFFfff3",
         "options": [
-          { "value": "0x0000", "name": "None" },
-          { "value": "0x0004", "name": "512 kB" },
-          { "value": "0x0008", "name": "1 MB" },
-          { "value": "0x000c", "name": "1.5 MB" }
+          {
+            "value": "0x0000",
+            "name": "None"
+          },
+          {
+            "value": "0x0004",
+            "name": "512 kB"
+          },
+          {
+            "value": "0x0008",
+            "name": "1 MB"
+          },
+          {
+            "value": "0x000c",
+            "name": "1.5 MB"
+          }
         ]
       },
       {
@@ -188,14 +309,26 @@
         "defaultval": 3,
         "mask": "0xFFFFFFF0",
         "options": [
-          { "value": "0x00000000", "name": "1 Drive 1x Speed" },
-          { "value": "0x00000001", "name": "1 Drive 2x Speed" },
-          { "value": "0x00000004", "name": "2 Drives 1x Speed" },
-          { "value": "0x00000005", "name": "2 Drives 2x Speed" }
+          {
+            "value": "0x00000000",
+            "name": "1 Drive 1x Speed"
+          },
+          {
+            "value": "0x00000001",
+            "name": "1 Drive 2x Speed"
+          },
+          {
+            "value": "0x00000004",
+            "name": "2 Drives 1x Speed"
+          },
+          {
+            "value": "0x00000005",
+            "name": "2 Drives 2x Speed"
+          }
         ]
       },
       {
-        "name": "FDD/HDD LED",
+        "name": "FDD / HDD LED",
         "id": 121,
         "type": "check",
         "enabled": true,
@@ -215,10 +348,22 @@
         "defaultval": 1,
         "mask": "0xFFFFFFF1",
         "options": [
-          { "value": "0x0002", "name": "A500/No PWM" },
-          { "value": "0x000A", "name": "A500/PWM" },
-          { "value": "0x0006", "name": "A1200/No PWM" },
-          { "value": "0x000E", "name": "A1200/PWM" }
+          {
+            "value": "0x0002",
+            "name": "A500 / No PWM"
+          },
+          {
+            "value": "0x000A",
+            "name": "A500 / PWM"
+          },
+          {
+            "value": "0x0006",
+            "name": "A1200 / No PWM"
+          },
+          {
+            "value": "0x000E",
+            "name": "A1200 / PWM"
+          }
         ]
       },
       {
@@ -231,14 +376,26 @@
         "defaultval": 2,
         "mask": "0xFFFFFF3F",
         "options": [
-          { "value": "0x0000", "name": "0% (Mono)" },
-          { "value": "0x0040", "name": "25%" },
-          { "value": "0x0080", "name": "50%" },
-          { "value": "0x00C0", "name": "75%" }
+          {
+            "value": "0x0000",
+            "name": "Mono"
+          },
+          {
+            "value": "0x0040",
+            "name": "25 percent"
+          },
+          {
+            "value": "0x0080",
+            "name": "50 percent"
+          },
+          {
+            "value": "0x00C0",
+            "name": "75 percent"
+          }
         ]
       },
       {
-        "name": "Screen X-Position",
+        "name": "Screen Position",
         "id": 125,
         "type": "slider_u32",
         "enabled": true,
@@ -252,23 +409,6 @@
           "max": 300,
           "adjust_small": 1,
           "adjust_large": 2
-        }
-      },
-      {
-        "name": "Screen Y-Position",
-        "id": 126,
-        "type": "slider_u32",
-        "enabled": true,
-        "persist": true,
-        "defaultval": "40",
-        "address": "0xA0000004",
-        "mask": "0x00000000",
-        "graphical": {
-          "signed": false,
-          "min": 0,
-          "max": 300,
-          "adjust_small": 1,
-          "adjust_large": 1
         }
       },
       {
