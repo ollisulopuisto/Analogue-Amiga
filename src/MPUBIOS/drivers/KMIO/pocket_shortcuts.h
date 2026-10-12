@@ -88,8 +88,8 @@ public:
             }
         } else {
             suppress_joystick_ = false;
-            // No modifier held: in standard joystick mode (non-CD32), map X to Space and Y to Return
-            if (!is_cd32_mode) {
+            // No modifier held: in standard joystick mode (non-CD32), map X to Space and Y to Return (unless R is held for mouse)
+            if (!is_cd32_mode && !mod_r) {
                 if (btn_x) desired[count++] = AMIGA_SPACE;
                 if (btn_y) desired[count++] = AMIGA_RETURN;
             }

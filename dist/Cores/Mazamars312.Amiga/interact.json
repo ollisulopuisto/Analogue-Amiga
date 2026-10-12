@@ -150,7 +150,8 @@
 		"options": [
 			{ "value": 0, "name": "Standard (D-pad & B)" },
 			{ "value": 1, "name": "Platformer (Btn B Jump)" },
-			{ "value": 2, "name": "Driving (L=Brake, R=Gas)" }
+			{ "value": 2, "name": "Driving (L=Brake, R=Gas)" },
+			{ "value": 3, "name": "Mouse (D-pad & A/B Clicks)" }
 		]
 		},
 		{
