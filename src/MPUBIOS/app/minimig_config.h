@@ -51,6 +51,7 @@ extern "C" {
 void minimig_restart_first();
 void minimig_restart_running_core();
 void minimig_fdd_update();
+void minimig_fdd_swap_disks();
 void minimig_hdd_update();
 
 #ifdef __cplusplus

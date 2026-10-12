@@ -87,17 +87,62 @@ void minimig_restart_running_core() {
 };
 
 void minimig_fdd_update(){
+  bool df0_was_empty = (df[0].status == 0);
   int i = 0;
   while (i != 4)
   {
-    if (dataslot_size(i+DATASLOT_FDD_BASE) != 0){
-			UnsertFloppy(&df[i]);
-      riscusleep(600000);
-      InsertFloppy(&df[i], dataslot_size(i+DATASLOT_FDD_BASE), i+DATASLOT_FDD_BASE);
+    uint32_t size = dataslot_size(i + DATASLOT_FDD_BASE);
+    if (size != 0){
+      UnsertFloppy(&df[i]);
+      riscusleep(400000);
+      InsertFloppy(&df[i], size, i + DATASLOT_FDD_BASE);
     }
     i++;
   }
   UpdateDriveStatus_fdd();
+
+  // If DF0 was empty and is now loaded, auto-start/reboot the core so the user doesn't need to manually reset!
+  if (df0_was_empty && (df[0].status & DSK_INSERTED)) {
+    mainprintf("DF0 loaded into empty drive - auto-starting Amiga\r\n");
+    riscusleep(200000);
+    core_reset(1); // 68000 reset
+    riscusleep(2000);
+    core_reset(0);
+    riscusleep(500);
+    UpdateDriveStatus_fdd();
+  }
+}
+
+// Rotate floppy disks among drives: DF0 <- DF1 <- DF2 <- DF3 <- DF0
+void minimig_fdd_swap_disks(){
+  // Check how many drives actually have disks
+  int loaded_count = 0;
+  for (int d = 0; d < 4; d++) {
+    if (df[d].status & DSK_INSERTED) loaded_count++;
+  }
+  if (loaded_count <= 1) {
+    mainprintf("No additional disks loaded to swap\r\n");
+    return;
+  }
+
+  mainprintf("Swapping disks among drives (rotating DF0<-DF1<-DF2<-DF3)\r\n");
+  // Temporarily signal disk ejection on all drives so Amiga trackdisk detects the disk change
+  RemoveDriveStatus();
+  riscusleep(400000);
+
+  adfTYPE temp = df[0];
+  df[0] = df[1];
+  df[1] = df[2];
+  df[2] = df[3];
+  df[3] = temp;
+
+  for (int d = 0; d < 4; d++) {
+    df[d].track_prev = -1;
+    df[d].sector_offset = 0;
+  }
+
+  UpdateDriveStatus_fdd();
+  mainprintf("Disk rotation complete! New DF0 dataslot: %d\r\n", df[0].dataslot);
 }
 
 void minimig_hdd_update(){

@@ -454,9 +454,10 @@ void OSD_Keyboard_process(){
     bool keyboard_down_pressed = 0;
     bool keyboard_left_pressed = 0;
     bool keyboard_right_pressed = 0;
-    // toggle of the keyboard menu
+    bool mod_l = ((CONTROLLER_KEY_REG(1) & 0x00000100) != 0); // L shoulder button
+    // toggle of the keyboard menu (Select without L)
     // A simple debouncer and toggle system
-    if (((CONTROLLER_KEY_REG(1) & 0x00004000) == 0x00004000) && (CONTROLLER_KEY_REG(4) >> 28) != 0x4 && keyboard_toggle_button_pressed == 0){
+    if (((CONTROLLER_KEY_REG(1) & 0x00004000) == 0x00004000) && !mod_l && (CONTROLLER_KEY_REG(4) >> 28) != 0x4 && keyboard_toggle_button_pressed == 0){
         if (keyboard_is_showing == 0) {
             keyboard_is_showing = 1;
             x = 3;

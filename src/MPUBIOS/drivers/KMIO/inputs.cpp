@@ -26,6 +26,7 @@
 
 #include "inputs.h"
 #include "pocket_shortcuts.h"
+#include "minimig_config.h"
 int interupt_amount_timer = 0;
 unsigned int mouse_counter={0};
 signed short x_count = 0;
@@ -33,6 +34,7 @@ signed short y_count = 0;
 bool mouse_enabled = 0;
 bool mouse_enabled_press = 0;
 bool mouse_enabled_press_old = 0;
+bool disk_swap_press_old = 0;
 
 uint8_t keyboard_buffer[6];
 bool    MOD_LALT;
@@ -295,8 +297,18 @@ void input_update() {
       update_mouse_inputs();
     }
     bool is_cd32 = (((AFP_REGISTOR(5) >> 28) & 0x2) != 0);
-    pocket_amiga_shortcuts_update(CONTROLLER_KEY_REG(1), is_cd32, keyboard_osd_showing);
-    if (pocket_amiga_shortcuts_suppress_joystick()) {
+    uint32_t c1 = CONTROLLER_KEY_REG(1);
+    // Shortcut for disk swap: Hold L (bit 8) and press Select (bit 14) while virtual keyboard is not showing
+    bool mod_l = (c1 & (1 << 8)) != 0;
+    bool btn_select = (c1 & (1 << 14)) != 0;
+    bool disk_swap_press = mod_l && btn_select && !keyboard_osd_showing;
+    if (disk_swap_press && !disk_swap_press_old) {
+      minimig_fdd_swap_disks();
+    }
+    disk_swap_press_old = disk_swap_press;
+
+    pocket_amiga_shortcuts_update(c1, is_cd32, keyboard_osd_showing);
+    if (pocket_amiga_shortcuts_suppress_joystick() || mod_l) {
       CORE_OUTPUT_REGISTOR() |= 0x00000010;
     } else if (!mouse_enabled && !keyboard_osd_showing) {
       CORE_OUTPUT_REGISTOR() &= ~0x00000010;
