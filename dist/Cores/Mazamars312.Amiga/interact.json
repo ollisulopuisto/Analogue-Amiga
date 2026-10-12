@@ -189,7 +189,7 @@
         "enabled": true,
         "persist": true,
         "address": "0xf000000c",
-        "defaultval": 2,
+        "defaultval": 3,
         "mask": "0xFFFFfff8",
         "options": [
 			{
