@@ -74,6 +74,7 @@ typedef struct adfTYPE_CACHE
 extern unsigned char drives;
 extern adfTYPE df[4];
 extern adfTYPE_CACHE df_cache;
+extern uint8_t sector_bufferfdd1[5632];
 
 void UpdateDriveStatus_fdd(void);
 void UnsertFloppy(adfTYPE *df);

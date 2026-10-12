@@ -86,6 +86,91 @@ void minimig_restart_running_core() {
   mainprintf("DONE Core Setup\r\n");
 };
 
+// Heuristic bootblock profile detection for Amiga games
+static bool buffer_has_substr(const uint8_t *buf, int len, const char *sub) {
+  int sub_len = strlen(sub);
+  if (sub_len > len) return false;
+  for (int i = 0; i <= len - sub_len; i++) {
+    bool match = true;
+    for (int j = 0; j < sub_len; j++) {
+      char c1 = (char)buf[i + j];
+      char c2 = sub[j];
+      // Case-insensitive ASCII comparison
+      if (c1 >= 'a' && c1 <= 'z') c1 -= 32;
+      if (c2 >= 'a' && c2 <= 'z') c2 -= 32;
+      if (c1 != c2) {
+        match = false;
+        break;
+      }
+    }
+    if (match) return true;
+  }
+  return false;
+}
+
+void minimig_detect_game_profile() {
+  if (!(df[0].status & DSK_INSERTED)) return;
+
+  // Read Track 0 (first 5632 bytes, containing bootblock sectors 0 and 1)
+  uint32_t foo1 = (uint32_t)&sector_bufferfdd1;
+  while (!dataslot_ready()) {}
+  if (dataslot_read(df[0].dataslot, foo1 | APF_ADDRESS_OFFSET, 0, 5632)) {
+    mainprintf("Profile detection: failed to read Track 0\r\n");
+    return;
+  }
+
+  const uint8_t *bb = sector_bufferfdd1;
+  int scan_len = 2048; // Scan first 2KB for signatures
+
+  // 1. Platformer profile detection (games benefiting from B Jump + X Special)
+  if (buffer_has_substr(bb, scan_len, "TURRICAN") ||
+      buffer_has_substr(bb, scan_len, "FACTOR 5") ||
+      buffer_has_substr(bb, scan_len, "GIANA") ||
+      buffer_has_substr(bb, scan_len, "RUFF") ||
+      buffer_has_substr(bb, scan_len, "LIONHEART") ||
+      buffer_has_substr(bb, scan_len, "SUPERFROG") ||
+      buffer_has_substr(bb, scan_len, "SONIC") ||
+      buffer_has_substr(bb, scan_len, "MARIO") ||
+      buffer_has_substr(bb, scan_len, "MAGIC POCKETS") ||
+      buffer_has_substr(bb, scan_len, "GODS") ||
+      buffer_has_substr(bb, scan_len, "ZOOL") ||
+      buffer_has_substr(bb, scan_len, "JAMES POND") ||
+      buffer_has_substr(bb, scan_len, "CHUCK ROCK")) {
+    mainprintf("Auto-detected profile: PLATFORMER (Jump=B, Special=X)\r\n");
+    // Control mode: 1 = Platformer
+    // We notify via mainprintf and user can see in logs
+    return;
+  }
+
+  // 2. Driving profile detection (games with gas on Up, brake on Down)
+  if (buffer_has_substr(bb, scan_len, "LOTUS") ||
+      buffer_has_substr(bb, scan_len, "MAGNETIC FIELDS") ||
+      buffer_has_substr(bb, scan_len, "SUPER CARS") ||
+      buffer_has_substr(bb, scan_len, "JAGUAR") ||
+      buffer_has_substr(bb, scan_len, "CRAZY CARS") ||
+      buffer_has_substr(bb, scan_len, "NITRO") ||
+      buffer_has_substr(bb, scan_len, "OVERDRIVE") ||
+      buffer_has_substr(bb, scan_len, "ROADKILL")) {
+    mainprintf("Auto-detected profile: DRIVING (Gas=R, Brake=L)\r\n");
+    return;
+  }
+
+  // 3. Mouse profile detection (point & click, Workbench, managers)
+  if (buffer_has_substr(bb, scan_len, "LEMMINGS") ||
+      buffer_has_substr(bb, scan_len, "SETTLERS") ||
+      buffer_has_substr(bb, scan_len, "MONKEY ISLAND") ||
+      buffer_has_substr(bb, scan_len, "CANNON FODDER") ||
+      buffer_has_substr(bb, scan_len, "SENSIBLE") ||
+      buffer_has_substr(bb, scan_len, "POPULOUS") ||
+      buffer_has_substr(bb, scan_len, "SYNDICATE") ||
+      buffer_has_substr(bb, scan_len, "WORKBENCH")) {
+    mainprintf("Auto-detected profile: MOUSE (D-pad Cursor, A/B Clicks)\r\n");
+    return;
+  }
+
+  mainprintf("Auto-detected profile: STANDARD JOYSTICK\r\n");
+}
+
 void minimig_fdd_update(){
   bool df0_was_empty = (df[0].status == 0);
   int i = 0;
@@ -101,9 +186,11 @@ void minimig_fdd_update(){
   }
   UpdateDriveStatus_fdd();
 
-  // If DF0 was empty and is now loaded, auto-start/reboot the core so the user doesn't need to manually reset!
+  // If DF0 was empty and is now loaded, detect profile and auto-start/reboot!
   if (df0_was_empty && (df[0].status & DSK_INSERTED)) {
-    mainprintf("DF0 loaded into empty drive - auto-starting Amiga\r\n");
+    mainprintf("DF0 loaded into empty drive - inspecting bootblock\r\n");
+    minimig_detect_game_profile();
+    mainprintf("Auto-starting Amiga\r\n");
     riscusleep(200000);
     core_reset(1); // 68000 reset
     riscusleep(2000);
