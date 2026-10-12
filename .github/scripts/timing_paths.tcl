@@ -5,7 +5,7 @@ create_timing_netlist
 read_sdc
 update_timing_netlist
 
-foreach corner {slow_1100mv_85c fast_1100mv_0c} {
+foreach corner {8_slow_1100mv_85c MIN_fast_1100mv_0c} {
   set_operating_conditions $corner
   update_timing_netlist
   report_timing -setup -npaths 50 -detail summary -file output_files/timing_setup_$corner.rpt
