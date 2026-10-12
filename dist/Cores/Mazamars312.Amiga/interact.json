@@ -84,58 +84,6 @@
         }
       },
       {
-        "name": "L-Hold: Shortcuts",
-        "id": 201,
-        "type": "list",
-        "enabled": true,
-        "defaultval": 0,
-        "options": [
-          {
-            "value": 0,
-            "name": "SELECT: Swap Joy 1/2"
-          },
-          {
-            "value": 1,
-            "name": "D-Pad: F1 F3 F5 F7"
-          },
-          {
-            "value": 2,
-            "name": "A/B: Space / Return"
-          },
-          {
-            "value": 3,
-            "name": "X/Y: Esc / 1"
-          }
-        ],
-        "writeonly": true
-      },
-      {
-        "name": "L / R Hold: Shifted",
-        "id": 202,
-        "type": "list",
-        "enabled": true,
-        "defaultval": 0,
-        "options": [
-          {
-            "value": 0,
-            "name": "D-Pad: F2 F4 F6 F8"
-          },
-          {
-            "value": 1,
-            "name": "A/B: Space / N"
-          },
-          {
-            "value": 2,
-            "name": "X/Y: Y / 2"
-          },
-          {
-            "value": 3,
-            "name": "START: Commodore key"
-          }
-        ],
-        "writeonly": true
-      },
-      {
         "name": "System Configuration",
         "id": 127,
         "type": "list",
@@ -395,7 +343,7 @@
         ]
       },
       {
-        "name": "Screen Position",
+        "name": "Screen X-Position",
         "id": 125,
         "type": "slider_u32",
         "enabled": true,
@@ -409,6 +357,23 @@
           "max": 300,
           "adjust_small": 1,
           "adjust_large": 2
+        }
+      },
+      {
+        "name": "Screen Y-Position",
+        "id": 126,
+        "type": "slider_u32",
+        "enabled": true,
+        "persist": true,
+        "defaultval": "40",
+        "address": "0xA0000004",
+        "mask": "0x00000000",
+        "graphical": {
+          "signed": false,
+          "min": 0,
+          "max": 300,
+          "adjust_small": 1,
+          "adjust_large": 1
         }
       },
       {
