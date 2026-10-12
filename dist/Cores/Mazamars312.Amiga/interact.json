@@ -283,7 +283,7 @@
 		},
 		{
         "name": "Memory: Fast",
-        "id": 130,
+        "id": 131,
         "type": "list",
         "enabled": true,
         "persist": true,
@@ -347,12 +347,12 @@
 		},
 		{
 			"name": "Audio Mix",
-			"id": 132,
+			"id": 133,
 			"type": "list",
 			"enabled": true,
 			"persist": true,
 			"address": "0xf000001C",
-			"defaultval": "0x0080",
+			"defaultval": 2,
 			"mask": "0xFFFFFF3F",
 			"options": [
 			{
