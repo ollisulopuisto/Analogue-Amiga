@@ -98,8 +98,8 @@ module substitute_mcu_apf_mister(
 	output reg [15:0] 	  	IO_DOUT,
 	input 					  	IO_WIDE, // 1 = 16bit, 0 = 8bit;
 	output reg [31:0]			CORE_OUTPUT,
-	input	 [31:0]				CORE_INPUT
-	
+	input	 [31:0]				CORE_INPUT,
+	output   [ 1:0]				control_mode
     );
 
 
@@ -361,6 +361,7 @@ reg [31:0] mpu_reg_3 = 0;
 reg [31:0] mpu_reg_4 = 0;
 reg [31:0] mpu_reg_5 = 0;
 reg [31:0] mpu_reg_6 = 0;
+assign control_mode = mpu_reg_6[1:0]; // Control Mode, shared with the BIOS (interact 0xf0000018)
 reg [31:0] mpu_reg_7 = 0;
 
 

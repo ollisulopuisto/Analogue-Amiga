@@ -95,11 +95,9 @@ module substitute_mcu_apf_mister(
 	output reg [15:0] 	  	IO_DOUT,
 	input 					  	IO_WIDE, // 1 = 16bit, 0 = 8bit;
 	output reg [31:0]			CORE_OUTPUT,
-	input	 [31:0]				CORE_INPUT,
-	output   [ 1:0]				control_mode
+	input	 [31:0]				CORE_INPUT
+	
     );
-
-assign control_mode = mpu_reg_6[1:0];
 
 
 // some timing for the UART and timer cores
