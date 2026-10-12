@@ -18,11 +18,11 @@ extern "C" void pocket_amiga_shortcuts_init(void) {
     s_initialized = true;
 }
 
-extern "C" void pocket_amiga_shortcuts_update(uint32_t c1, bool is_cd32_mode, bool osd_active) {
+extern "C" void pocket_amiga_shortcuts_update(uint32_t c1, bool is_cd32_mode, bool osd_active, bool is_driving) {
     if (!s_initialized) {
         pocket_amiga_shortcuts_init();
     }
-    s_shortcuts.process(c1, is_cd32_mode, osd_active);
+    s_shortcuts.process(c1, is_cd32_mode, osd_active, is_driving);
 }
 
 extern "C" bool pocket_amiga_shortcuts_suppress_joystick(void) {

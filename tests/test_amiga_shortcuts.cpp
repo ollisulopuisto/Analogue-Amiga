@@ -161,6 +161,28 @@ int main() {
     assert(!shortcuts.suppress_joystick());
     events.clear();
 
+    printf("Running test: Driving mode (is_driving = true) - holding L does not suppress joystick or trigger shortcuts...\n");
+    // Hold L (bit 8) in driving mode (is_driving = true)
+    shortcuts.process(1 << 8, false, false, true);
+    assert(events.empty());
+    assert(!shortcuts.suppress_joystick()); // joystick must NOT be suppressed while L (brake) is held!
+
+    // Hold L + A in driving mode: L does not trigger shortcut layer
+    // In driving mode with L held (and !mod_r), unmodified buttons still work or do nothing depending on mapping
+    shortcuts.process((1 << 8) | (1 << 4), false, false, true);
+    // A -> Return (unmodified mapping)
+    assert(events.size() == 1);
+    assert(events[0].first == AMIGA_RETURN && events[0].second == true);
+    assert(!shortcuts.suppress_joystick());
+    events.clear();
+
+    // Release all in driving mode
+    shortcuts.process(0, false, false, true);
+    assert(events.size() == 1);
+    assert(events[0].first == AMIGA_RETURN && events[0].second == false);
+    assert(!shortcuts.suppress_joystick());
+    events.clear();
+
     printf("All shortcut tests passed successfully!\n");
     return 0;
 }

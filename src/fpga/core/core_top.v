@@ -595,6 +595,7 @@ wire        ide_f_led;
 //wire        ide_f_irq;
 wire  [5:0] ide_f_req;
 wire [15:0] ide_f_readdata;
+wire  [1:0] control_mode;
 // control_mode:
 // JOY bits 0-10 are the joystick view (A = fire 1, B = fire 2, X, Y, L, R, Select).
 // Bits 11-13 carry raw D-pad Up, A and B so userio.v can build a CD32 pad that
@@ -859,6 +860,7 @@ substitute_mcu_apf_mister substitute_mcu_apf_mister(
 		.datatable_q            		( datatable_q ),
 		.CORE_OUTPUT						( CORE_OUTPUT ),
 		.CORE_INPUT							( CORE_INPUT ),
+		.control_mode						( control_mode ),
 		
 		// Core interactions
 		.IO_UIO       						( io_uio ),
@@ -1125,16 +1127,15 @@ cpu_wrapper cpu_wrapper
 	wire 				vblank_i_buf = vblank_i;
 	wire [7:0]		r_buf = r; 
 	wire [7:0]		g_buf = g;
-	wire [7:0]		b_buf = b;	
+	wire [7:0]		b_buf = b;
 
-	wire [1:0]		control_mode;
 Analogue_video_encoder Analogue_video_encoder(
 	.clk_74a							( clk_74a					),
 	.bridge_wr						( bridge_wr					),
 	.bridge_rd						( bridge_rd					),
 	.bridge_addr					( bridge_addr				),
 	.bridge_wr_data				( bridge_wr_data			),
-	.control_mode					( control_mode				),
+	.control_mode					( 							),
 	.vga_bridge_rd_data			( vga_bridge_rd_data		),
 	.video_rgb_clock				( video_rgb_clock			),
 	.hs								( hs_buf						),

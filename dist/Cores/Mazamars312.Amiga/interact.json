@@ -7,7 +7,7 @@
         "id": 160,
         "type": "list",
         "enabled": true,
-        "address": "0xA0000008",
+        "address": "0xf0000018",
         "writeonly": true,
         "persist": true,
         "defaultval": 0,

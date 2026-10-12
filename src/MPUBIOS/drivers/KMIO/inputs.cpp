@@ -65,15 +65,14 @@ void update_mouse_inputs (){
       uint32_t tmp = CORE_OUTPUT_REGISTOR();
       tmp = tmp | 0x00000030;
       CORE_OUTPUT_REGISTOR() = tmp;
-        OsdWrite("Mouse Disabled");
-        OsdUpdate(0);
-        OsdClear();
-        
+      OsdWrite("Mouse Enabled");
+      OsdUpdate(0);
+      OsdClear();
     } else {
       uint32_t tmp = CORE_OUTPUT_REGISTOR();
       tmp = tmp & 0xFFFFFFCF;
       CORE_OUTPUT_REGISTOR() = tmp;
-      OsdWrite("Mouse Enabled");
+      OsdWrite("Mouse Disabled");
     }
     
     OsdUpdate(1);
@@ -137,12 +136,13 @@ void update_mouse_inputs (){
 
 
   } else {
-    // Check if Control Mode is Mouse Mode (control_mode == 3, via bridge register 0xA0000008 / AFP_REGISTOR(7) or AFP_REGISTOR(5))
-    // Or momentary mouse mode: R shoulder held (bit 9 of CONTROLLER_KEY_REG(1))
     uint32_t c1_raw = CONTROLLER_KEY_REG(1);
     bool r_held = ((c1_raw & (1 << 9)) != 0);
-    // Control mode is written to 0xA0000008 in video encoder, we can also check if mouse_enabled is active
-    bool active_mouse = mouse_enabled || r_held;
+    // Control Mode: 0 = Standard, 1 = Platformer, 2 = Driving, 3 = Mouse
+    // interact.json writes Control Mode to 0xf0000018 (AFP_REGISTOR(6))
+    uint8_t control_mode = (AFP_REGISTOR(6) & 0x3);
+    bool is_mouse_mode = (control_mode == 3);
+    bool active_mouse = mouse_enabled || r_held || is_mouse_mode;
 
     if (active_mouse) {
       uint32_t tmp = CORE_OUTPUT_REGISTOR();
@@ -324,10 +324,12 @@ void input_update() {
     }
     disk_swap_press_old = disk_swap_press;
 
-    pocket_amiga_shortcuts_update(c1, is_cd32, keyboard_osd_showing);
-    if (pocket_amiga_shortcuts_suppress_joystick() || mod_l) {
+    uint8_t control_mode = (AFP_REGISTOR(6) & 0x3);
+    bool is_driving = (control_mode == 2);
+    pocket_amiga_shortcuts_update(c1, is_cd32, keyboard_osd_showing, is_driving);
+    if (pocket_amiga_shortcuts_suppress_joystick() || (mod_l && !is_driving)) {
       CORE_OUTPUT_REGISTOR() |= 0x00000010;
-    } else if (!mouse_enabled && !keyboard_osd_showing) {
+    } else if (!mouse_enabled && !keyboard_osd_showing && (control_mode != 3)) {
       CORE_OUTPUT_REGISTOR() &= ~0x00000010;
     }
     return;

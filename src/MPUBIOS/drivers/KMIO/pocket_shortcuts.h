@@ -42,7 +42,7 @@ public:
         return suppress_joystick_;
     }
 
-    void process(uint32_t c1, bool is_cd32_mode, bool osd_active) {
+    void process(uint32_t c1, bool is_cd32_mode, bool osd_active, bool is_driving = false) {
         if (osd_active) {
             release_all();
             suppress_joystick_ = false;
@@ -63,7 +63,8 @@ public:
         uint8_t desired[MAX_KEYS];
         int count = 0;
 
-        if (mod_l) {
+        // In Driving mode, L is the brake and R is gas, so L should not activate the shortcut layer or suppress joystick
+        if (mod_l && !is_driving) {
             suppress_joystick_ = true;
             if (mod_r) {
                 // Layer L + R
@@ -156,7 +157,7 @@ extern "C" {
 #endif
 
 void pocket_amiga_shortcuts_init(void);
-void pocket_amiga_shortcuts_update(uint32_t c1, bool is_cd32_mode, bool osd_active);
+void pocket_amiga_shortcuts_update(uint32_t c1, bool is_cd32_mode, bool osd_active, bool is_driving);
 bool pocket_amiga_shortcuts_suppress_joystick(void);
 
 #ifdef __cplusplus
