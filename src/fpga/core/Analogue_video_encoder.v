@@ -65,7 +65,9 @@ reg 				video_de_reg_i;
 // lets get some video offsets working
 
 reg [7:0] x_offset = 0;
-reg [7:0] y_offset = 0;
+// interact.json has no room for a Y slider (APF max 16 variables), so default
+// to the old slider's value of 40 lines; the X slider still writes 0xA0000000.
+reg [7:0] y_offset = 8'd40;
 wire [7:0] x_offset_s;
 wire [7:0] y_offset_s;
 reg [31:0] vga_bridge_rd_data_reg;
