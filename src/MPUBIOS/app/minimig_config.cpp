@@ -186,17 +186,12 @@ void minimig_fdd_update(){
   }
   UpdateDriveStatus_fdd();
 
-  // If DF0 was empty and is now loaded, detect profile and auto-start/reboot!
+  // If DF0 was empty and is now loaded, detect profile.
+  // The Amiga hardware natively senses the disk insertion via DSKCHANGE in UpdateDriveStatus_fdd().
   if (df0_was_empty && (df[0].status & DSK_INSERTED)) {
     mainprintf("DF0 loaded into empty drive - inspecting bootblock\r\n");
     minimig_detect_game_profile();
-    mainprintf("Auto-starting Amiga\r\n");
-    riscusleep(200000);
-    core_reset(1); // 68000 reset
-    riscusleep(2000);
-    core_reset(0);
-    riscusleep(500);
-    UpdateDriveStatus_fdd();
+    mainprintf("Disk ready in DF0: - DSKCHANGE signaled to Amiga OS\r\n");
   }
 }
 
