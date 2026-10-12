@@ -86,6 +86,12 @@ jobs:
           cd ../..
           cat src/fpga/output_files/ap_core.fit.summary || true
 
+      - name: Report worst timing paths
+        continue-on-error: true
+        run: |
+          cd src/fpga
+          "$QUARTUS_BIN/quartus_sta" -t ../../.github/scripts/timing_paths.tcl 2>&1 | tail -n 20
+
       - name: Package Core Release Zip
         run: |
           DIST=dist
@@ -116,3 +122,5 @@ jobs:
             src/fpga/output_files/bitstream.rbf_r
             src/fpga/output_files/*.fit.summary
             src/fpga/output_files/*.sta.summary
+            src/fpga/output_files/*.sta.rpt
+            src/fpga/output_files/timing_*.rpt
