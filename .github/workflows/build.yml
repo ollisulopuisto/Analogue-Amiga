@@ -1,4 +1,4 @@
-name: Build Amiga MPU BIOS
+name: Build Amiga Core and Release
 
 on:
   push:
@@ -7,8 +7,12 @@ on:
     branches: [ main ]
   workflow_dispatch:
 
+env:
+  QUARTUS_CACHE_KEY: quartus-lite-25.1std.0.1129-cyclonev-v2
+
 jobs:
-  test-and-build:
+  test-and-build-mpu:
+    name: Build Amiga MPU BIOS
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
@@ -26,3 +30,89 @@ jobs:
         with:
           name: amiga_mpu_bios
           path: src/MPUBIOS/app/build.riscv.amiga_mpu_bios/amiga_mpu_bios.bin
+
+  quartus-cache:
+    name: Download and cache Quartus installers
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+      - id: c
+        uses: actions/cache@v4
+        with:
+          path: ~/quartus-dl
+          key: ${{ env.QUARTUS_CACHE_KEY }}
+      - name: Download installers on cache miss
+        if: steps.c.outputs.cache-hit != 'true'
+        env:
+          ASSETS_TOKEN: ${{ secrets.ASSETS_TOKEN }}
+        run: DOWNLOAD_ONLY=1 .github/scripts/install_quartus.sh
+
+  build-fpga:
+    name: Compile FPGA Core (Quartus)
+    needs: [quartus-cache]
+    runs-on: ubuntu-22.04
+    timeout-minutes: 180
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Free disk space
+        run: |
+          sudo rm -rf /usr/share/dotnet /opt/ghc /usr/local/lib/android /opt/hostedtoolcache/CodeQL
+          df -h /
+
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y python3 python3-pip zip \
+            libtinfo5 libncurses5 libpng16-16 libfreetype6 libsm6 libxrender1 libxext6 libxtst6 libxi6 libxft2 locales
+
+      - uses: actions/cache/restore@v4
+        with:
+          path: ~/quartus-dl
+          key: ${{ env.QUARTUS_CACHE_KEY }}
+
+      - name: Install Quartus Lite 25.1std
+        env:
+          ASSETS_TOKEN: ${{ secrets.ASSETS_TOKEN }}
+        run: .github/scripts/install_quartus.sh
+
+      - name: Compile FPGA bitstream with Quartus
+        run: |
+          cd src/fpga
+          "$QUARTUS_BIN/quartus_sh" --flow compile ap_core.qpf 2>&1 | tee ../../compile.log | tail -n 40
+          cd ../..
+          cat src/fpga/output_files/ap_core.fit.summary || true
+
+      - name: Package Core Release Zip
+        run: |
+          DIST=dist
+          STAGING=_staging_
+          DATE=$(date +'%Y-%m-%d')
+          VERSION=${GITHUB_SHA::7}
+
+          rm -rf ${STAGING}
+          cp -r ${DIST} ${STAGING}
+
+          python3 utils/reverse-bits.py src/fpga/output_files/ap_core.rbf ${STAGING}/Cores/Mazamars312.Amiga/bitstream.rbf_r
+          python3 utils/reverse-bits.py src/fpga/output_files/ap_core.rbf ${STAGING}/Cores/Mazamars312.Amiga/Bitstream.rbf_r
+          sed -i "s/\"version\": \".*\"/\"version\": \"${VERSION}\"/" ${STAGING}/Cores/Mazamars312.Amiga/core.json
+          sed -i "s/\"date_release\": \".*\"/\"date_release\": \"${DATE}\"/" ${STAGING}/Cores/Mazamars312.Amiga/core.json
+
+          pushd ${STAGING}
+          zip -r ../Amiga-Pocket.zip .
+          popd
+          ls -lh Amiga-Pocket.zip
+
+      - name: Upload Core Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: amiga-pocket-release
+          path: |
+            Amiga-Pocket.zip
+            src/fpga/output_files/ap_core.rbf
+            src/fpga/output_files/bitstream.rbf_r
+            src/fpga/output_files/*.fit.summary
+            src/fpga/output_files/*.sta.summary

@@ -40,6 +40,7 @@ module Analogue_video_encoder(
 	input 					ide_c_led, 
 	input 					ide_f_led,
 	
+	output reg [1:0]		control_mode,
 	output reg [23:0] 	video_rgb_reg,
 	output reg 				video_hs_i_reg,
 	output reg 				video_vs_i_reg,
@@ -77,6 +78,9 @@ always @(posedge clk_74a) begin
 			end
 			8'h04 : begin
 				y_offset <= bridge_wr_data;
+			end
+			8'h08 : begin
+				control_mode <= bridge_wr_data[1:0];
 			end
 		endcase
 	end

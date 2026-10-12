@@ -30,6 +30,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 unsigned char drives = 0; // number of active drives reported by FPGA (may change only during reset)
 adfTYPE df[4] = {};    // drive information structure
+adfTYPE_CACHE df_cache = {};
 uint8_t sector_bufferfdd1[5632];
 // uint8_t *sector_buffer1 __attribute__((section("SRAM")));
 uint8_t sector_bufferfdd0[512];
@@ -493,7 +494,6 @@ void ReadTrack(adfTYPE *drive)
 	unsigned char track;
 	unsigned short dsksync;
 	uint16_t tmp;
-	adfTYPE *df_cache;
 	foo1 = (uint32_t) &sector_bufferfdd1;
 
 	if (drive->track >= drive->tracks)
@@ -503,13 +503,13 @@ void ReadTrack(adfTYPE *drive)
 	}
   // sector_buffer1 = (uint8_t*)malloc(5632);
 	unsigned long lba;
-	mainprintf("dataslots %d %d\r\n", df_cache->dataslot, drive->dataslot);
-	mainprintf("tracks %d %d\r\n", df_cache->track, drive->track);
-	mainprintf("status %d %d\r\n", df_cache->status, drive->status);
+	mainprintf("dataslots %d %d\r\n", df_cache.dataslot, drive->dataslot);
+	mainprintf("tracks %d %d\r\n", df_cache.track, drive->track);
+	mainprintf("status %d %d\r\n", df_cache.status, drive->status);
 	if ((drive->track 			== drive->track_prev) &
-		  (df_cache->dataslot 	== drive->dataslot) &
-			(df_cache->track 		== drive->track) &
-			(df_cache->status 		== drive->status))
+		  (df_cache.dataslot 	== drive->dataslot) &
+			(df_cache.track 		== drive->track) &
+			(df_cache.status 		== drive->status))
 			{ // same track, start at next sector in track
 				sector = drive->sector_offset;
 				lba = (drive->track * SECTOR_COUNT);
@@ -521,13 +521,13 @@ void ReadTrack(adfTYPE *drive)
 				sector 									= 0;
 				drive->sector_offset 		= sector;
 				lba 										= drive->track * SECTOR_COUNT;
-				df_cache->dataslot 			= drive->dataslot;
-				df_cache->size 					= drive->size; // Size of the image
-				df_cache->status 				= drive->status; /*status of floppy*/
-				df_cache->tracks 				= drive->tracks; /*number of tracks*/
-				df_cache->sector_offset 	= drive->sector_offset; /*sector offset to handle tricky loaders*/
-				df_cache->track 					= drive->track; /*current track*/
-				df_cache->track_prev 		= drive->track_prev; /*previous track*/
+				df_cache.dataslot 			= drive->dataslot;
+				df_cache.size 					= drive->size; // Size of the image
+				df_cache.status 				= drive->status; /*status of floppy*/
+				df_cache.tracks 				= drive->tracks; /*number of tracks*/
+				df_cache.sector_offset 	= drive->sector_offset; /*sector offset to handle tricky loaders*/
+				df_cache.track 					= drive->track; /*current track*/
+				df_cache.track_prev 		= drive->track_prev; /*previous track*/
 				mainprintf("we are not using the cache\r\n");
 				while (!dataslot_ready()){
 	      };
@@ -631,22 +631,25 @@ void ReadTrack(adfTYPE *drive)
 
 void UpdateDriveStatus_fdd()
 {
-	adfTYPE *df_cache;
+	uint16_t status_cmd = 0x1000;
+	if (df[0].status & DSK_INSERTED) status_cmd |= (1 << 0);
+	if (df[1].status & DSK_INSERTED) status_cmd |= (1 << 1);
+	if (df[2].status & DSK_INSERTED) status_cmd |= (1 << 2);
+	if (df[3].status & DSK_INSERTED) status_cmd |= (1 << 3);
+	if (df[0].status & DSK_WRITABLE) status_cmd |= (1 << 4);
+	if (df[1].status & DSK_WRITABLE) status_cmd |= (1 << 5);
+	if (df[2].status & DSK_WRITABLE) status_cmd |= (1 << 6);
+	if (df[3].status & DSK_WRITABLE) status_cmd |= (1 << 7);
+
 	HPS_EnableFpga();
-	spi_w(0x1000 | df[0].status | (df[1].status << 1) | (df[2].status << 2) | (df[3].status << 3));
+	spi_w(status_cmd);
 	mainprintf("States disk 0: %0.4x\r\n", (df[0].status));
 	mainprintf("States disk 1: %0.4x\r\n", (df[1].status));
 	mainprintf("States disk 2: %0.4x\r\n", (df[2].status));
 	mainprintf("States disk 3: %0.4x\r\n", (df[3].status));
-	mainprintf("States of disks: %0.4x\r\n", (0x1000 | df[0].status | (df[1].status << 1) | (df[2].status << 2) | (df[3].status << 3)));
+	mainprintf("States of disks: %0.4x\r\n", status_cmd);
 	HPS_DisableFpga();
-	df_cache->dataslot 			= 0;
-	df_cache->size 					= 0; // Size of the image
-	df_cache->status 				= 0; /*status of floppy*/
-	df_cache->tracks 				= 0; /*number of tracks*/
-	df_cache->sector_offset 	= 0; /*sector offset to handle tricky loaders*/
-	df_cache->track 					= 0; /*current track*/
-	df_cache->track_prev 		= 0; /*previous track*/
+	memset(&df_cache, 0, sizeof(df_cache));
 }
 
 void UnsertFloppy(adfTYPE *drive)

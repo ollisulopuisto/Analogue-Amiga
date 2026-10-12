@@ -7,37 +7,37 @@
               "mappings": [
                     {
                         "id": 0,
-                        "name": "Pad 1 Button B",
+                        "name": "Fire 1",
                         "key": "pad_btn_a"
                     },
                     {
                         "id": 1,
-                        "name": "Pad 1 Button A",
+                        "name": "Fire 2 / Jump",
                         "key": "pad_btn_b"
                     },
                     {
                         "id": 2,
-                        "name": "Pad 1 Button D",
+                        "name": "Space",
                         "key": "pad_btn_x"
                     },
                     {
                         "id": 3,
-                        "name": "Pad 1 Button C",
+                        "name": "Return",
                         "key": "pad_btn_y"
                     },
                     {
                         "id": 4,
-                        "name": "Pad 1 Left Trigger",
+                        "name": "Shortcut",
                         "key": "pad_trig_l"
                     },
                     {
                         "id": 5,
-                        "name": "Pad 1 Right Trigger",
+                        "name": "Shift",
                         "key": "pad_trig_r"
                     },
                     {
                         "id": 6,
-                        "name": "Pad 1 Start",
+                        "name": "Mouse Toggle",
                         "key": "pad_btn_start"
                     }
                 ]

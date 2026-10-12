@@ -26,6 +26,7 @@
 
 #include "inputs.h"
 #include "pocket_shortcuts.h"
+#include "minimig_config.h"
 int interupt_amount_timer = 0;
 unsigned int mouse_counter={0};
 signed short x_count = 0;
@@ -33,6 +34,7 @@ signed short y_count = 0;
 bool mouse_enabled = 0;
 bool mouse_enabled_press = 0;
 bool mouse_enabled_press_old = 0;
+bool disk_swap_press_old = 0;
 
 uint8_t keyboard_buffer[6];
 bool    MOD_LALT;
@@ -134,25 +136,42 @@ void update_mouse_inputs (){
     HPS_spi_uio_cmd8(UIO_MOUSE_BTN, ((CONTROLLER_KEY_REG(1)>>8) & 0x3));
 
 
-  } else if (mouse_enabled) {
-    // Emulating the mouse on the dpad by pressing both left and right triggers
-    
-    uint32_t tmp = CORE_OUTPUT_REGISTOR();
-    tmp = tmp | 0x00000030;
-    CORE_OUTPUT_REGISTOR() = tmp;
-    int tmp_joy = CONTROLLER_KEY_REG(1);
-    if ((tmp_joy & 0x1) == 1)       y_count = y_count - speed;
-    if (((tmp_joy>>1) & 0x1) == 1)  y_count = y_count + speed;
-    if (((tmp_joy>>2) & 0x1) == 1)  x_count = x_count - speed;
-    if (((tmp_joy>>3) & 0x1) == 1)  x_count = x_count + speed;
-    HPS_spi_uio_cmd8(UIO_MOUSE_X, x_count);
-    HPS_spi_uio_cmd8(UIO_MOUSE_Y, y_count);
-    HPS_spi_uio_cmd8(UIO_MOUSE_BTN, ((CONTROLLER_KEY_REG(1)>>8) & 0x3));
   } else {
-    HPS_spi_uio_cmd8(UIO_MOUSE_BTN, ((CONTROLLER_KEY_REG(1)>>8) & 0x3));
-    uint32_t tmp = CORE_OUTPUT_REGISTOR();
-    tmp = tmp & 0xFFFFFFCF;
-    CORE_OUTPUT_REGISTOR() = tmp;
+    // Check if Control Mode is Mouse Mode (control_mode == 3, via bridge register 0xA0000008 / AFP_REGISTOR(7) or AFP_REGISTOR(5))
+    // Or momentary mouse mode: R shoulder held (bit 9 of CONTROLLER_KEY_REG(1))
+    uint32_t c1_raw = CONTROLLER_KEY_REG(1);
+    bool r_held = ((c1_raw & (1 << 9)) != 0);
+    // Control mode is written to 0xA0000008 in video encoder, we can also check if mouse_enabled is active
+    bool active_mouse = mouse_enabled || r_held;
+
+    if (active_mouse) {
+      uint32_t tmp = CORE_OUTPUT_REGISTOR();
+      tmp = tmp | 0x00000030; // Suppress joystick in FPGA
+      CORE_OUTPUT_REGISTOR() = tmp;
+
+      if ((c1_raw & 0x1) == 1)       y_count = y_count - speed;
+      if (((c1_raw >> 1) & 0x1) == 1) y_count = y_count + speed;
+      if (((c1_raw >> 2) & 0x1) == 1) x_count = x_count - speed;
+      if (((c1_raw >> 3) & 0x1) == 1) x_count = x_count + speed;
+
+      // Mouse buttons:
+      // Face A (bit 4) = Left click (bit 0)
+      // Face B (bit 5) = Right click (bit 1)
+      // Face X (bit 6) = Middle click (bit 2)
+      uint8_t m_btn = 0;
+      if (c1_raw & (1 << 4)) m_btn |= (1 << 0);
+      if (c1_raw & (1 << 5)) m_btn |= (1 << 1);
+      if (c1_raw & (1 << 6)) m_btn |= (1 << 2);
+
+      HPS_spi_uio_cmd8(UIO_MOUSE_X, x_count);
+      HPS_spi_uio_cmd8(UIO_MOUSE_Y, y_count);
+      HPS_spi_uio_cmd8(UIO_MOUSE_BTN, m_btn);
+    } else {
+      HPS_spi_uio_cmd8(UIO_MOUSE_BTN, 0);
+      uint32_t tmp = CORE_OUTPUT_REGISTOR();
+      tmp = tmp & 0xFFFFFFCF;
+      CORE_OUTPUT_REGISTOR() = tmp;
+    }
   }
   return;
 };
@@ -295,8 +314,18 @@ void input_update() {
       update_mouse_inputs();
     }
     bool is_cd32 = (((AFP_REGISTOR(5) >> 28) & 0x2) != 0);
-    pocket_amiga_shortcuts_update(CONTROLLER_KEY_REG(1), is_cd32, keyboard_osd_showing);
-    if (pocket_amiga_shortcuts_suppress_joystick()) {
+    uint32_t c1 = CONTROLLER_KEY_REG(1);
+    // Shortcut for disk swap: Hold L (bit 8) and press Select (bit 14) while virtual keyboard is not showing
+    bool mod_l = (c1 & (1 << 8)) != 0;
+    bool btn_select = (c1 & (1 << 14)) != 0;
+    bool disk_swap_press = mod_l && btn_select && !keyboard_osd_showing;
+    if (disk_swap_press && !disk_swap_press_old) {
+      minimig_fdd_swap_disks();
+    }
+    disk_swap_press_old = disk_swap_press;
+
+    pocket_amiga_shortcuts_update(c1, is_cd32, keyboard_osd_showing);
+    if (pocket_amiga_shortcuts_suppress_joystick() || mod_l) {
       CORE_OUTPUT_REGISTOR() |= 0x00000010;
     } else if (!mouse_enabled && !keyboard_osd_showing) {
       CORE_OUTPUT_REGISTOR() &= ~0x00000010;
