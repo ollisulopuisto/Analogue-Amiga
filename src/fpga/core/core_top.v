@@ -611,7 +611,7 @@ wire joy0_down = (control_mode == 2'b11) ? 1'b0 :
 wire joy0_left  = (control_mode == 2'b11) ? 1'b0 : cont1_key_s[2];
 wire joy0_right = (control_mode == 2'b11) ? 1'b0 : cont1_key_s[3];
 wire joy0_fire1 = (control_mode == 2'b11) ? 1'b0 : cont1_key_s[4];
-wire joy0_fire2 = (control_mode == 2'b11) ? 1'b0 : cont1_key_s[5];
+wire joy0_fire2 = (control_mode == 2'b11 || control_mode == 2'b01) ? 1'b0 : cont1_key_s[5];
 
 	wire [15:0] JOY0  =  CORE_OUTPUT[4] ? 'b0 : {cont1_key_s[14], cont1_key_s[9], cont1_key_s[8], cont1_key_s[7], cont1_key_s[6], 
 								 joy0_fire2,  joy0_fire1, joy0_up, joy0_down, joy0_left, joy0_right};
