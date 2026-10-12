@@ -186,12 +186,20 @@ void minimig_fdd_update(){
   }
   UpdateDriveStatus_fdd();
 
-  // If DF0 was empty and is now loaded, detect profile.
-  // The Amiga hardware natively senses the disk insertion via DSKCHANGE in UpdateDriveStatus_fdd().
+  // If DF0 was empty and is now loaded, detect profile and do a clean reset of the 68000 CPU!
+  // This guarantees trackloader games (like Sensible Soccer) get a completely clean Chip RAM & Agnus state,
+  // preventing playfield corruption and bypassing Workbench.
   if (df0_was_empty && (df[0].status & DSK_INSERTED)) {
     mainprintf("DF0 loaded into empty drive - inspecting bootblock\r\n");
     minimig_detect_game_profile();
-    mainprintf("Disk ready in DF0: - DSKCHANGE signaled to Amiga OS\r\n");
+    mainprintf("Resetting Amiga 68000 to boot directly into floppy game\r\n");
+    riscusleep(200000);
+    core_reset(1); // 68000 CPU reset
+    riscusleep(2000);
+    core_reset(0);
+    riscusleep(500);
+    UpdateDriveStatus_fdd();
+    mainprintf("Disk ready in DF0: - booting floppy\r\n");
   }
 }
 
@@ -228,6 +236,14 @@ void minimig_fdd_swap_disks(){
 }
 
 void minimig_hdd_update(){
+  // If user has a floppy disk loaded in DF0, do NOT mount Hard Drives / Workbench!
+  // This keeps the Amiga purely as an unadulterated floppy-based system without Workbench taking over.
+  if (df[0].status & DSK_INSERTED) {
+    mainprintf("Floppy in DF0 detected - skipping HDD setup to prevent Workbench auto-boot\r\n");
+    HPS_spi_uio_cmd8(UIO_MM2_HDD, 0);
+    return;
+  }
+
   mainprintf("Harddrive are being setup in the core\r\n");
     int temp = 0;
     if (dataslot_size(310) != 0){
