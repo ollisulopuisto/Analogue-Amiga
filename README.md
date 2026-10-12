@@ -174,9 +174,30 @@ Do note that it takes a while to boot up, especially if you have a slow SD card.
 * Folder names changed for Unix/Linux/Mac OS and to help with the uploader system.
 * Faster floppy access times using a larger buffer in the MPU core and caching.
 
+## Pocket Controls, Shortcuts & Profiles
+
+### Control Profiles (interact.json)
+The core includes customized Pocket control profiles placed directly beneath the port options:
+* **Standard (D-pad & B)**: Traditional joystick where D-pad Up or Face B jumps, Face A fires, X is Space, and Y is Return.
+* **Platformer (Btn B Jump)**: Pure button jump layout for games like *Turrican II* and *Superfrog*. Button B is exclusively Jump (Up), suppressing accidental secondary fire. Button X triggers Space / Special weapons.
+* **Driving (L=Brake, R=Gas)**: Dedicated racing layout for games like *Lotus II* and *Super Cars*. Right trigger is Gas (Up), Left trigger is Brake/Reverse (Down), D-pad handles steering.
+* **Mouse (D-pad & A/B Clicks)**: Turns the Pocket D-pad into a mouse cursor. Button A = Left Click, Button B = Right Click, Button X = Middle Click.
+
+### In-Game Shortcuts & Hotkeys
+* **Hold R-Trigger (Momentary Mouse)**: Instantly switches the D-pad to a high-precision mouse cursor and Face buttons A/B/X to Left/Right/Middle click while held.
+* **Hold L + Press Select (Multi-Disk Swapper)**: Rotates loaded floppy disks in memory (`DF0:` <- `DF1:` <- `DF2:` <- `DF3:` <- `DF0:`) with native `DSKCHANGE` pulse, allowing effortless multi-disk play (*Monkey Island*, *Xenon 2*, etc.) without touching menus.
+* **Hold L-Trigger (Shortcut Layer 1)**:
+  * D-pad: `F1` (Up), `F2` (Right), `F3` (Down), `F4` (Left)
+  * Face buttons: `Space` (A), `Return` (B), `Esc` (X), `1` (Y)
+* **Hold L + R Triggers (Shortcut Layer 2)**:
+  * D-pad: `F5` (Up), `F6` (Right), `F7` (Down), `F8` (Left)
+  * Face buttons: `Space` (A), `N` (B), `Y` (X), `2` (Y)
+
+### Automatic Game Profile & Bootblock Detection
+When inserting an ADF disk into `DF0:`, the MPU BIOS reads Track 0 / Bootblock and automatically inspects game signatures (e.g. *Turrican*, *Lotus*, *Lemmings*), logging the optimal recommended profile and pulsing the drive change line cleanly without spurious CPU resets.
+
 ## What will be next for updates?
 * Clock input for the Amiga to keep its time.
-* Figure out why swapping disks will not always work.
 
 ## Credits
 
