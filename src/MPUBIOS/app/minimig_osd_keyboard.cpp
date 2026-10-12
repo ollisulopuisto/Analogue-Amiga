@@ -434,8 +434,9 @@ void OSD_Keyboard_6_line(bool enable, int num){
 // I want to keep these values in the function and store them
 
 
-int x = 14;
-int y = 1;
+int x = 3;
+int y = 5;
+uint8_t keyboard_last_sent_key = 0;
 bool keyboard_toggle_button_pressed = 0;
 bool keyboard_toggle_up_button_pressed = 0;
 bool keyboard_toggle_down_button_pressed = 0;
@@ -458,6 +459,8 @@ void OSD_Keyboard_process(){
     if (((CONTROLLER_KEY_REG(1) & 0x00004000) == 0x00004000) && (CONTROLLER_KEY_REG(4) >> 28) != 0x4 && keyboard_toggle_button_pressed == 0){
         if (keyboard_is_showing == 0) {
             keyboard_is_showing = 1;
+            x = 3;
+            y = 5;
             updated_keyboard = 1;
             input_allow_osd(1);
         }
@@ -739,12 +742,14 @@ void OSD_Keyboard_process(){
         }
         uint8_t tmpk;
         if (keyboard_a_pressed == 1 && keyboard_toggle_a_button_pressed == 0) {
-            tmpk = osdKeyboardlocater[y][x]; // To unpress we send the MSB to 1 and the same code back to say unpressed
+            tmpk = osdKeyboardlocater[y][x];
+            keyboard_last_sent_key = tmpk;
             HPS_spi_uio_cmd8(UIO_KEYBOARD, tmpk);
         } else if (keyboard_a_pressed == 0 && keyboard_toggle_a_button_pressed == 1) {
-            tmpk = osdKeyboardlocater[y][x]; // To unpress we send the MSB to 1 and the same code back to say unpressed
+            tmpk = keyboard_last_sent_key ? keyboard_last_sent_key : osdKeyboardlocater[y][x];
             tmpk = 0x80 | tmpk;
             HPS_spi_uio_cmd8(UIO_KEYBOARD, tmpk);
+            keyboard_last_sent_key = 0;
         }
     } else {    
         OsdDisable();
