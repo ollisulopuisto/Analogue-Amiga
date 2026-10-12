@@ -596,8 +596,8 @@ wire        ide_f_led;
 wire  [5:0] ide_f_req;
 wire [15:0] ide_f_readdata;
 // control_mode:
-// Face buttons follow Super Mario World: Y = fire 1 (left of jump), B = jump.
-// A takes Y's old slot (CD32 fire4) so the pad stays a full permutation.
+// JOY words carry the original CD32 order (A = red/fire 1, B = blue/fire 2, X, Y).
+// userio.v swaps A and Y for plain joystick ports (Super Mario World layout).
 //   2'b00: Standard (D-pad Up | Face B Jump)
 //   2'b01: Platformer (Face B Jump only, D-pad Up disabled)
 //   2'b10: Driving (Trig R = Up/Gas, Trig L = Down/Brake, D-pad Up/Down disabled)
@@ -612,14 +612,14 @@ wire joy0_down = (control_mode == 2'b11) ? 1'b0 :
 
 wire joy0_left  = (control_mode == 2'b11) ? 1'b0 : cont1_key_s[2];
 wire joy0_right = (control_mode == 2'b11) ? 1'b0 : cont1_key_s[3];
-wire joy0_fire1 = (control_mode == 2'b11) ? 1'b0 : cont1_key_s[7];
+wire joy0_fire1 = (control_mode == 2'b11) ? 1'b0 : cont1_key_s[4];
 wire joy0_fire2 = (control_mode == 2'b11 || control_mode == 2'b01) ? 1'b0 : cont1_key_s[5];
 
-	wire [15:0] JOY0  =  CORE_OUTPUT[4] ? 'b0 : {cont1_key_s[14], cont1_key_s[9], cont1_key_s[8], cont1_key_s[4], cont1_key_s[6], 
+	wire [15:0] JOY0  =  CORE_OUTPUT[4] ? 'b0 : {cont1_key_s[14], cont1_key_s[9], cont1_key_s[8], cont1_key_s[7], cont1_key_s[6], 
 								 joy0_fire2,  joy0_fire1, joy0_up, joy0_down, joy0_left, joy0_right};
 	// joystick 2 [fire4,fire3,fire2,fire,up,down,left,right] (default joystick port)
-	wire [15:0] JOY1 = 	CORE_OUTPUT[5] ? 'b0 : {cont2_key_s[14], cont2_key_s[9], cont2_key_s[8], cont2_key_s[4], cont2_key_s[6], 
-								 cont2_key_s[5],  cont2_key_s[7], cont2_key_s[0], cont2_key_s[1], cont2_key_s[2], cont2_key_s[3]};
+	wire [15:0] JOY1 = 	CORE_OUTPUT[5] ? 'b0 : {cont2_key_s[14], cont2_key_s[9], cont2_key_s[8], cont2_key_s[7], cont2_key_s[6], 
+								 cont2_key_s[5],  cont2_key_s[4], cont2_key_s[0], cont2_key_s[1], cont2_key_s[2], cont2_key_s[3]};
 	wire [15:0] JOY2;// = {16{joystick_enable[2]}} & {cont1_key[7], cont1_key[6], cont1_key[4], cont1_key[5], cont1_key[0], cont1_key[1], cont1_key[2], cont1_key[3]};
 	wire [15:0] JOY3;// = {16{joystick_enable[3]}} & {cont1_key[7], cont1_key[6], cont1_key[4], cont1_key[5], cont1_key[0], cont1_key[1], cont1_key[2], cont1_key[3]};
 	wire [15:0] JOYA0;
