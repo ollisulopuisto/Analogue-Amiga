@@ -87,6 +87,22 @@
 			]
 		},
 		{
+		"name": "Control Mode",
+		"id": 160,
+		"type": "list",
+		"enabled": true,
+		"address": "0xA0000008",
+		"writeonly": true,
+		"persist": true,
+		"defaultval": 0,
+		"options": [
+			{ "value": 0, "name": "Standard (D-pad & B)" },
+			{ "value": 1, "name": "Platformer (Btn B Jump)" },
+			{ "value": 2, "name": "Driving (L=Brake, R=Gas)" },
+			{ "value": 3, "name": "Mouse (D-pad & A/B Clicks)" }
+		]
+		},
+		{
         "name": "Mouse Speed",
         "id": 124,
         "type": "slider_u32",
@@ -137,22 +153,6 @@
 				"adjust_small": 1,
 				"adjust_large": 1
 			}
-		},
-		{
-		"name": "Control Mode",
-		"id": 160,
-		"type": "list",
-		"enabled": true,
-		"address": "0xA0000008",
-		"writeonly": true,
-		"persist": true,
-		"defaultval": 0,
-		"options": [
-			{ "value": 0, "name": "Standard (D-pad & B)" },
-			{ "value": 1, "name": "Platformer (Btn B Jump)" },
-			{ "value": 2, "name": "Driving (L=Brake, R=Gas)" },
-			{ "value": 3, "name": "Mouse (D-pad & A/B Clicks)" }
-		]
 		},
 		{
         "name": "System Configuration",
