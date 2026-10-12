@@ -178,7 +178,7 @@ Do note that it takes a while to boot up, especially if you have a slow SD card.
 
 ### Control Profiles (interact.json)
 The core includes customized Pocket control profiles placed directly beneath the port options:
-* **Standard (D-pad & B)**: Traditional joystick where D-pad Up or Face B jumps, Face A fires, X is Space, and Y is Return.
+* **Standard (D-pad & B)**: Traditional joystick where D-pad Up or Face B jumps and Face Y fires (Super Mario World layout: fire left of jump), X is Space, and A is Return. In CD32 pad mode A becomes the fourth (yellow) button.
 * **Platformer (Btn B Jump)**: Pure button jump layout for games like *Turrican II* and *Superfrog*. Button B is exclusively Jump (Up), suppressing accidental secondary fire. Button X triggers Space / Special weapons.
 * **Driving (L=Brake, R=Gas)**: Dedicated racing layout for games like *Lotus II* and *Super Cars*. Right trigger is Gas (Up), Left trigger is Brake/Reverse (Down), D-pad handles steering.
 * **Mouse (D-pad & A/B Clicks)**: Turns the Pocket D-pad into a mouse cursor. Button A = Left Click, Button B = Right Click, Button X = Middle Click.

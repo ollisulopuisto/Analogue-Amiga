@@ -16,7 +16,7 @@ int main() {
     };
     shortcuts.set_callback(callback, &events);
 
-    printf("Running test: Unmodified X -> Space, Y -> Return...\n");
+    printf("Running test: Unmodified X -> Space, A -> Return, Y -> joystick only...\n");
     // Press X (bit 6)
     shortcuts.process(1 << 6, false, false);
     assert(events.size() == 1);
@@ -30,8 +30,14 @@ int main() {
     assert(events[0].first == AMIGA_SPACE && events[0].second == false);
     events.clear();
 
-    // Press Y (bit 7)
-    shortcuts.process(1 << 7, false, false);
+    // Y (bit 7) is fire 1 and B (bit 5) is jump: no keys
+    shortcuts.process((1 << 7) | (1 << 5), false, false);
+    assert(events.empty());
+    shortcuts.process(0, false, false);
+    assert(events.empty());
+
+    // Press A (bit 4)
+    shortcuts.process(1 << 4, false, false);
     assert(events.size() == 1);
     assert(events[0].first == AMIGA_RETURN && events[0].second == true);
     events.clear();

@@ -88,10 +88,11 @@ public:
             }
         } else {
             suppress_joystick_ = false;
-            // No modifier held: in standard joystick mode (non-CD32), map X to Space and Y to Return (unless R is held for mouse)
+            // No modifier held: in standard joystick mode (non-CD32), map X to Space and A to Return (unless R is held for mouse).
+            // Y is fire 1 and B is jump, Super Mario World style.
             if (!is_cd32_mode && !mod_r) {
                 if (btn_x) desired[count++] = AMIGA_SPACE;
-                if (btn_y) desired[count++] = AMIGA_RETURN;
+                if (btn_a) desired[count++] = AMIGA_RETURN;
             }
         }
 
