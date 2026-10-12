@@ -139,6 +139,21 @@
 			}
 		},
 		{
+		"name": "Control Mode",
+		"id": 160,
+		"type": "list",
+		"enabled": true,
+		"address": "0xA0000008",
+		"writeonly": true,
+		"persist": true,
+		"defaultval": 0,
+		"options": [
+			{ "value": 0, "name": "Standard (D-pad & B)" },
+			{ "value": 1, "name": "Platformer (Btn B Jump)" },
+			{ "value": 2, "name": "Driving (L=Brake, R=Gas)" }
+		]
+		},
+		{
         "name": "System Configuration",
         "id": 127,
         "type": "list",

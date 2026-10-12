@@ -595,8 +595,18 @@ wire        ide_f_led;
 //wire        ide_f_irq;
 wire  [5:0] ide_f_req;
 wire [15:0] ide_f_readdata;
+// control_mode:
+//   2'b00: Standard (D-pad Up | Face B Jump)
+//   2'b01: Platformer (Face B Jump only, D-pad Up disabled)
+//   2'b10: Driving (Trig R = Up/Gas, Trig L = Down/Brake, D-pad Up/Down disabled)
+wire joy0_up = (control_mode == 2'b10) ? cont1_key_s[9] :
+               (control_mode == 2'b01) ? cont1_key_s[5] :
+               (cont1_key_s[0] | cont1_key_s[5]);
+
+wire joy0_down = (control_mode == 2'b10) ? cont1_key_s[8] : cont1_key_s[1];
+
 	wire [15:0] JOY0  =  CORE_OUTPUT[4] ? 'b0 : {cont1_key_s[14], cont1_key_s[9], cont1_key_s[8], cont1_key_s[7], cont1_key_s[6], 
-								 cont1_key_s[5],  cont1_key_s[4], cont1_key_s[0], cont1_key_s[1], cont1_key_s[2], cont1_key_s[3]};
+								 cont1_key_s[5],  cont1_key_s[4], joy0_up, joy0_down, cont1_key_s[2], cont1_key_s[3]};
 	// joystick 2 [fire4,fire3,fire2,fire,up,down,left,right] (default joystick port)
 	wire [15:0] JOY1 = 	CORE_OUTPUT[5] ? 'b0 : {cont2_key_s[14], cont2_key_s[9], cont2_key_s[8], cont2_key_s[7], cont2_key_s[6], 
 								 cont2_key_s[5],  cont2_key_s[4], cont2_key_s[0], cont2_key_s[1], cont2_key_s[2], cont2_key_s[3]};
@@ -1102,12 +1112,14 @@ cpu_wrapper cpu_wrapper
 	wire [7:0]		g_buf = g;
 	wire [7:0]		b_buf = b;	
 
+	wire [1:0]		control_mode;
 Analogue_video_encoder Analogue_video_encoder(
 	.clk_74a							( clk_74a					),
 	.bridge_wr						( bridge_wr					),
 	.bridge_rd						( bridge_rd					),
 	.bridge_addr					( bridge_addr				),
 	.bridge_wr_data				( bridge_wr_data			),
+	.control_mode					( control_mode				),
 	.vga_bridge_rd_data			( vga_bridge_rd_data		),
 	.video_rgb_clock				( video_rgb_clock			),
 	.hs								( hs_buf						),
