@@ -3,6 +3,15 @@
     "magic": "APF_VER_1",
     "variables": [
       {
+        "name": "Reset Amiga",
+        "id": 120,
+        "type": "action",
+        "enabled": true,
+        "address": "0xf0000000",
+        "value": 1,
+        "mask": "0xFFFFFFFE"
+      },
+      {
         "name": "Control Mode",
         "id": 160,
         "type": "list",
@@ -392,15 +401,6 @@
           "adjust_small": 1,
           "adjust_large": 1
         }
-      },
-      {
-        "name": "Reset Amiga",
-        "id": 120,
-        "type": "action",
-        "enabled": true,
-        "address": "0xf0000000",
-        "value": 1,
-        "mask": "0xFFFFFFFE"
       }
     ]
   }
