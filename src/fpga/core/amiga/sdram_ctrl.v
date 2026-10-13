@@ -135,7 +135,8 @@ cpu_cache_new cpu_cache
 	.snoop_act        (chipWE),                // snoop act (write only - just update existing data in cache)
 	.snoop_adr        (snoop_adr),             // snoop address
 	.snoop_dat_w      (snoop_dat),             // snoop write data
-	.snoop_bs         (snoop_bs)               // snoop byte selects
+	.snoop_bs         (snoop_bs),              // snoop byte selects
+	.sys_edge         (&sdram_state[1:0])      // this cycle began at a clk_sys edge
 );
 
 reg cache_fill;

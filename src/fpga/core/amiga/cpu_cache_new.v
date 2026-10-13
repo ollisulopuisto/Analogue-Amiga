@@ -45,7 +45,8 @@ module cpu_cache_new
   input             snoop_act,      // snoop act (write only - just update existing data in cache)
   input      [28:1] snoop_adr,      // chip address                      
   input      [15:0] snoop_dat_w,    // snoop write data
-  input       [1:0] snoop_bs
+  input       [1:0] snoop_bs,
+  input             sys_edge        // this cycle began at a clk_sys edge
 );
 
 
@@ -272,8 +273,10 @@ always @ (posedge clk) begin
         end
       end
       CPU_SM_IDLE : begin
-        // waiting for CPU access
-        if (cpu_cs) begin
+        // waiting for CPU access; start only in the cycle that follows a
+        // clk_sys edge, so cpu_ack/cpu_dat_r always change at least two
+        // clk_114 cycles before the CPU samples them (multicycle in the SDC)
+        if (cpu_cs && sys_edge) begin
           if (cpu_we) begin
             cpu_sm_state <= CPU_SM_WRITE;
           end else begin
