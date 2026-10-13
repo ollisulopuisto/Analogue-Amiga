@@ -314,8 +314,7 @@ set_global_assignment -name GENERATE_RBF_FILE ON
 
 # Signal Tap Assignments
 # ======================
-set_global_assignment -name ENABLE_SIGNALTAP ON
-set_global_assignment -name USE_SIGNALTAP_FILE core/stp1.stp
+set_global_assignment -name ENABLE_SIGNALTAP OFF
 
 # Power Estimation Assignments
 # ============================
