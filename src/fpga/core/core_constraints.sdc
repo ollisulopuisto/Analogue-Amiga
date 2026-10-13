@@ -38,8 +38,9 @@ foreach r {datawr casaddr cas_dqm cas_sd_we cas_sd_cas sd_addr sd_ba sd_ras sd_c
 # The cache answers the CPU (cpu_ack, cpu_dat_r) only on the second clk_114
 # edge after a clk_sys edge (hits; reads start in the cycle that follows a
 # clk_sys edge) or two cycles before one (fills, sdram_state 7). The CPU
-# samples on the next clk_sys edge: two clk_114 cycles at least.
-foreach r {cpu_ack cpu_dat_r} {
- set_multicycle_path -from [get_registers "*|sdram_ctrl:ram1|cpu_cache_new:cpu_cache|${r}*"] -to $clk_sys -setup -start 2
- set_multicycle_path -from [get_registers "*|sdram_ctrl:ram1|cpu_cache_new:cpu_cache|${r}*"] -to $clk_sys -hold -start 1
-}
+# samples on the next clk_sys edge: two clk_114 cycles at least. They are the
+# cache's only outputs to clk_sys; register retiming renames them, so the
+# whole cache is the source.
+set cache_regs [get_registers {*|sdram_ctrl:ram1|cpu_cache_new:cpu_cache|*}]
+set_multicycle_path -from $cache_regs -to $clk_sys -setup -start 2
+set_multicycle_path -from $cache_regs -to $clk_sys -hold -start 1
