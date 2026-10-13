@@ -57,23 +57,52 @@ module cpu_wrapper
 	input             fastchip_selack,
 	input             fastchip_ready,
 
-	output            ramsel,
-	output     [28:1] ramaddr,
-	output     [15:0] ramdin,
+	output reg        ramsel,
+	output reg [28:1] ramaddr,
+	output reg [15:0] ramdin,
 	input      [15:0] ramdout,
 	input             ramready,
-	output            ramlds,
-	output            ramuds,
-	output            ramshared,
-	output 				sel_zram,
+	output reg        ramlds,
+	output reg        ramuds,
+	output reg        ramshared,
+	output reg        sel_zram,
+	output reg  [1:0] ramstate,
 
 	output reg  [1:0] cpustate,
 	output reg  [3:0] cacr,
 	output reg [31:0] nmi_addr
 );
 
-assign ramsel       = cpu_req & ~sel_nmi_vector & (sel_zram | sel_chipram | sel_kickram | sel_dd | sel_rtg);
-assign ramshared    = sel_dd;
+wire        ramsel_c;
+wire [28:1] ramaddr_c;
+wire [15:0] ramdin_c;
+wire        ramlds_c;
+wire        ramuds_c;
+wire        ramshared_c;
+wire        sel_zram_c;
+
+// Registered request to the SDRAM controller (clk_114 domain).
+// The kernel computes the address combinationally from the register file,
+// which is far too slow for a single clk_114 period, so the request is
+// registered here in the clk_sys domain and the controller only sees
+// register outputs. The request appears one clk_sys cycle later than the
+// combinational one; the CPU is stalled on ramready meanwhile.
+// In 68020 mode the request must also be withdrawn on the cycle after
+// ramready, because the CPU only advances at the end of that cycle and
+// the delayed copy would otherwise present the finished request again.
+always @(posedge clk) begin
+	ramsel    <= ramsel_c & ~(cpucfg[1] & ramready);
+	ramaddr   <= ramaddr_c;
+	ramdin    <= ramdin_c;
+	ramlds    <= ramlds_c;
+	ramuds    <= ramuds_c;
+	ramshared <= ramshared_c;
+	sel_zram  <= sel_zram_c;
+	ramstate  <= cpustate;
+end
+
+assign ramsel_c       = cpu_req & ~sel_nmi_vector & (sel_zram_c | sel_chipram | sel_kickram | sel_dd | sel_rtg);
+assign ramshared_c    = sel_dd;
 
 // NMI
 always @(posedge clk) nmi_addr <= vbr + 32'h7c;
@@ -81,7 +110,7 @@ always @(posedge clk) nmi_addr <= vbr + 32'h7c;
 wire sel_z3ram0 = (cpu_addr[31:27] == z3ram_base0) && z3ram_ena0;
 wire sel_z3ram1 = (cpu_addr[31:28] == z3ram_base1) && z3ram_ena1;
 wire sel_z2ram  = !cpu_addr[31:24] && (cpu_addr[23] ^ |cpu_addr[22:21]) && z2ram_ena; // addr[23:21] = 1..4
-assign  sel_zram   = sel_z3ram0 | sel_z3ram1 | sel_z2ram;
+assign  sel_zram_c   = sel_z3ram0 | sel_z3ram1 | sel_z2ram;
 wire sel_dd     = (cpu_addr[31:16] == 16'h00DD) && (cpu_addr[15:13] == 'b010);
 wire sel_rtg    = (cpu_addr[31:24] == 8'h02);
 
@@ -96,9 +125,9 @@ wire sel_nmi_vector = (cpu_addr[31:2] == nmi_addr[31:2]) && (cpustate == 2);
 
 wire [15:0] ramdat;
 
-assign ramlds = sel_rtg ? uds_in : lds_in;
-assign ramuds = sel_rtg ? lds_in : uds_in;
-assign ramdin = sel_rtg ? {cpu_dout[7:0],cpu_dout[15:8]} : cpu_dout;
+assign ramlds_c = sel_rtg ? uds_in : lds_in;
+assign ramuds_c = sel_rtg ? lds_in : uds_in;
+assign ramdin_c = sel_rtg ? {cpu_dout[7:0],cpu_dout[15:8]} : cpu_dout;
 assign ramdat = sel_rtg ? {ramdout[7:0], ramdout[15:8]}  : ramdout;
 
 //       Main  DDx  RTG  8M  128M  256M
@@ -114,15 +143,15 @@ assign ramdat = sel_rtg ? {ramdout[7:0], ramdout[15:8]}  : ramdout;
 // map 00-1f to 00-1f (chipram), a0-ff to 20-7f. All non-fastram goes into the first
 // 8M block(SDRAM). This map should be the same as in minimig_sram_bridge.v 
 // All Zorro RAM goes to DDR3
-assign ramaddr[28]    = 0;
-assign ramaddr[27]    = 0;
-assign ramaddr[26]    = 0;
-assign ramaddr[25]    = 0;
-assign ramaddr[24:23] = (sel_zram) ? cpu_addr[24:23]: (sel_rtg ? 2'b10 : {2{sel_dd}});
-assign ramaddr[22:19] = {4{sel_dd}} | cpu_addr[22:19];
-assign ramaddr[18]    =    sel_dd   | (sel_kicklower & bootrom) | cpu_addr[18];
-assign ramaddr[17:16] = {2{sel_dd}} | cpu_addr[17:16];
-assign ramaddr[15:1]  = cpu_addr[15:1];
+assign ramaddr_c[28]    = 0;
+assign ramaddr_c[27]    = 0;
+assign ramaddr_c[26]    = 0;
+assign ramaddr_c[25]    = 0;
+assign ramaddr_c[24:23] = (sel_zram_c) ? cpu_addr[24:23]: (sel_rtg ? 2'b10 : {2{sel_dd}});
+assign ramaddr_c[22:19] = {4{sel_dd}} | cpu_addr[22:19];
+assign ramaddr_c[18]    =    sel_dd   | (sel_kicklower & bootrom) | cpu_addr[18];
+assign ramaddr_c[17:16] = {2{sel_dd}} | cpu_addr[17:16];
+assign ramaddr_c[15:1]  = cpu_addr[15:1];
 
 assign fastchip_lds = lds_in;
 assign fastchip_uds = uds_in;
@@ -130,7 +159,7 @@ assign fastchip_rnw = wr;
 
 reg  [31:0] cpu_addr;
 reg  [15:0] cpu_dout;
-wire [15:0] cpu_din = ramsel ? ramdat : fastchip_selack ? fastchip_dout : {sel_autoconfig ? autocfg_data : chip_data[15:12], chip_data[11:0]};
+wire [15:0] cpu_din = ramsel_c ? ramdat : fastchip_selack ? fastchip_dout : {sel_autoconfig ? autocfg_data : chip_data[15:12], chip_data[11:0]};
 reg         wr;
 reg         uds_in;
 reg         lds_in;
@@ -168,7 +197,7 @@ always @* begin
 		uds_in       = uds_o;
 		lds_in       = lds_o;
 		reset_out    = reset_out_o;
-		chip_as      = ramsel | as_o;
+		chip_as      = ramsel_c | as_o;
 		chip_rw      = wr_o;
 		chip_uds     = uds_o;
 		chip_lds     = lds_o;
@@ -247,7 +276,7 @@ fx68k cpu_inst_o
 	.ASn(as_o),
 	.LDSn(lds_o),
 	.UDSn(uds_o),
-	.DTACKn(ramsel ? ~ramready : chip_dtack),
+	.DTACKn(ramsel_c ? ~ramready : chip_dtack),
 
 	.FC0(fc_o[0]),
 	.FC1(fc_o[1]),
@@ -375,7 +404,7 @@ end
 reg       chipreq;
 reg [2:0] cpu_ipl;
 always @(posedge clk) begin
-	chipreq <= cpu_req & ~ramsel & ~fastchip_selack;
+	chipreq <= cpu_req & ~ramsel_c & ~fastchip_selack;
 	cpu_ipl <= ipl_i;
 end
 

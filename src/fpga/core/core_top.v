@@ -742,7 +742,7 @@ sdram_ctrl ram1
 	.cpuAddr      ({sel_zram, ram_addr[24:1]}),
 	.cpuU         (ram_uds         ),
 	.cpuL         (ram_lds         ),
-	.cpustate     (cpu_state       ),
+	.cpustate     (ram_state       ),
 	.cpuCS        (ram_cs			 ),
 	.cpuRD        (ram_dout1       ),
 	.ramready     (ram_ready1      ),
@@ -891,6 +891,7 @@ wire hblank_i, vblank_i, vbl, fx;
 wire  [1:0] res;
 
 wire  [1:0] 	cpu_state;
+wire  [1:0] 	ram_state;
 wire  [3:0] 	cpu_cacr;
 wire  [14:0] 	ldata, rdata;
 wire 				ce_pix;
@@ -1116,6 +1117,7 @@ cpu_wrapper cpu_wrapper
 	.ramready     (ram_ready       ),
 	.ramshared    (ramshared       ),
 	.sel_zram	  (sel_zram			 ),
+	.ramstate     (ram_state       ),
 
 	//custom CPU signals
 	.cpustate     (cpu_state       ),
