@@ -97,6 +97,7 @@ void mainloop()
       minimig_fdd_next_disk();
     }
     osd_popup_poll();
+    minimig_floppy_config_update();
 
     // This checks if we are wanting to do a reboot of the core from the interaction menu. We want to do this last so nothing is held in the buffers
     if (AFP_REGISTOR(0) & 0x3) { // This has 2 bits for reseting the core

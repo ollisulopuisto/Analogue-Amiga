@@ -53,6 +53,7 @@ void minimig_restart_running_core();
 void minimig_fdd_update();
 void minimig_fdd_swap_disks();
 void minimig_fdd_next_disk();
+void minimig_floppy_config_update();
 void minimig_hdd_update();
 void minimig_detect_game_profile();
 

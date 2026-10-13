@@ -27,6 +27,9 @@
  #include "disk_name.h"
  #include "osd_popup.h"
 
+// Floppy config (drives and speed) last sent to the core
+static uint32_t floppy_config_sent;
+
 
 void minimig_bios (){
   int tmp;
@@ -59,7 +62,8 @@ void minimig_restart_first() {
   minimig_bios();
 
   // Get the Floppy Controllers sorted
-  HPS_spi_uio_cmd8(UIO_MM2_FLP , AFP_REGISTOR(1));
+  floppy_config_sent = AFP_REGISTOR(1);
+  HPS_spi_uio_cmd8(UIO_MM2_FLP , floppy_config_sent);
   // Get the chip setup sorted
   HPS_spi_uio_cmd8(UIO_MM2_CHIP, AFP_REGISTOR(2));
   // Get the Cpu setup sorted
@@ -76,7 +80,8 @@ void minimig_restart_first() {
 
 void minimig_restart_running_core() {
   // Get the Floppy Controllers sorted
-  HPS_spi_uio_cmd8(UIO_MM2_FLP , AFP_REGISTOR(1));
+  floppy_config_sent = AFP_REGISTOR(1);
+  HPS_spi_uio_cmd8(UIO_MM2_FLP , floppy_config_sent);
   // Get the chip setup sorted
   HPS_spi_uio_cmd8(UIO_MM2_CHIP, AFP_REGISTOR(2));
   // Get the Cpu setup sorted
@@ -87,6 +92,18 @@ void minimig_restart_running_core() {
   HPS_spi_uio_cmd8(UIO_MM2_JOY , AFP_REGISTOR(5));
   mainprintf("DONE Core Setup\r\n");
 };
+
+// The floppy speed (bit 0) takes effect as soon as the core gets the config, so
+// send it when the menu changes it. The drive count (bits 3:2) is only taken by
+// Paula on reset, as before.
+void minimig_floppy_config_update() {
+  uint32_t config = AFP_REGISTOR(1);
+  if (config != floppy_config_sent) {
+    floppy_config_sent = config;
+    HPS_spi_uio_cmd8(UIO_MM2_FLP , config);
+    mainprintf("Floppy config %0.2x\r\n", config);
+  }
+}
 
 // Heuristic bootblock profile detection for Amiga games
 static bool buffer_has_substr(const uint8_t *buf, int len, const char *sub) {
