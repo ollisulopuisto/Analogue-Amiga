@@ -329,3 +329,87 @@ uint32_t dataslot_write_lba(uint32_t length, bool update_address)
 }
 
 // we need a check commands for the APF
+
+// Path buffers the host reads or writes over the bridge (MPU RAM is mapped 1:1)
+static uint32_t dataslot_path_buffer[DATASLOT_PATH_LEN / 4];
+#if !DATASLOT_OPENFILE_IN_DATATABLE
+static uint32_t dataslot_open_struct[(DATASLOT_PATH_LEN + 8) / 4];
+#endif
+
+// Starts a 0x0190 / 0x0192 command and waits for the host. Returns the result code.
+static uint32_t dataslot_file_command(uint16_t dataslot, uint32_t address, uint32_t control)
+{
+  WRITE_TARGET_DATASLOT_ID(0) = dataslot;
+  WRITE_TARGET_DATASLOT_BRIDGE_ADD(0) = address;
+  WRITE_TARGET_DATASLOT_CONTROL(0) = control;
+
+  // The bridge drops done (and the old result) as the command starts; make sure that
+  // has happened so the previous command's done is not taken as this answer
+  int apf_codes;
+  int i = 0;
+  do
+  {
+    apf_codes = READ_TARGET_DATASLOT_CONTROL(0);
+    i++;
+  } while ((apf_codes & APF_DONE) && !(apf_codes & APF_ACK) && (i < 1000));
+
+  unsigned int start = GetMilliseconds();
+  do
+  {
+    apf_codes = READ_TARGET_DATASLOT_CONTROL(0);
+    if ((GetMilliseconds() - start) > 3000) {
+      mainprintf("APF file command %0.2x timed out\r\n", control);
+      return (DATASLOT_FILE_TIMEOUT);
+    }
+  } while (!(apf_codes & APF_DONE));
+  return (apf_codes & APF_ERROR);
+}
+
+// 0x0190: full path of the file in a data slot. path must hold DATASLOT_PATH_LEN bytes.
+uint32_t dataslot_get_filename(uint16_t dataslot, char *path)
+{
+  uint32_t result = dataslot_file_command(dataslot, APF_ADDRESS_OFFSET | (uint32_t)dataslot_path_buffer, TARGET_DATASLOT_GETFILE_REG);
+  // The bridge stores bytes in memory order, so the words read back as a plain string
+  const char *src = (const char *)dataslot_path_buffer;
+  int i = 0;
+  if (result == 0) {
+    while (i < DATASLOT_PATH_LEN - 1 && src[i]) {
+      path[i] = src[i];
+      i++;
+    }
+  }
+  path[i] = 0;
+  mainprintf("APF get file name %d: %d %s\r\n", dataslot, result, path);
+  return (result);
+}
+
+// 0x0192: open another file into a data slot (no create, no resize)
+uint32_t dataslot_open_file(uint16_t dataslot, const char *path)
+{
+  int len = 0;
+  while (len < DATASLOT_PATH_LEN - 1 && path[len]) len++;
+#if DATASLOT_OPENFILE_IN_DATATABLE
+  // Bridge words are big endian: the first character goes in bits 31:24
+  for (int w = 0; w < DATASLOT_PATH_LEN / 4; w++) {
+    uint32_t word = 0;
+    for (int b = 0; b < 4; b++) {
+      int n = (w << 2) + b;
+      uint32_t c = (n < len) ? (uint8_t)path[n] : 0;
+      word |= c << (24 - (b << 3));
+    }
+    DATASLOT_RAM_ACCESS(DATASLOT_OPENFILE_TABLE_OFFSET + (w << 2)) = word;
+  }
+  DATASLOT_RAM_ACCESS(DATASLOT_OPENFILE_TABLE_OFFSET + DATASLOT_PATH_LEN) = 0;     // flags: open only
+  DATASLOT_RAM_ACCESS(DATASLOT_OPENFILE_TABLE_OFFSET + DATASLOT_PATH_LEN + 4) = 0; // size: unused
+  uint32_t address = DATASLOT_TABLE_BRIDGE_BASE + DATASLOT_OPENFILE_TABLE_OFFSET;
+#else
+  char *dst = (char *)dataslot_open_struct;
+  for (int n = 0; n < DATASLOT_PATH_LEN; n++) dst[n] = (n < len) ? path[n] : 0;
+  dataslot_open_struct[DATASLOT_PATH_LEN / 4] = 0;
+  dataslot_open_struct[DATASLOT_PATH_LEN / 4 + 1] = 0;
+  uint32_t address = APF_ADDRESS_OFFSET | (uint32_t)dataslot_open_struct;
+#endif
+  uint32_t result = dataslot_file_command(dataslot, address, TARGET_DATASLOT_OPENFILE_REG);
+  mainprintf("APF open file %d: %d %s\r\n", dataslot, result, path);
+  return (result);
+}

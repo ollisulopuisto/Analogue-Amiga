@@ -53,6 +53,9 @@ void riscusleep(int time);
 void Set_interrupt_Timer(unsigned int time);
 
 unsigned int GetTimer2();
+// Free running milliseconds (timer 2; timer 1 is reset by every input interrupt)
+unsigned int GetMilliseconds();
+void WaitMilliseconds(unsigned int ms);
 unsigned int GetTimer2_fast();
 unsigned int CheckTimer2(unsigned int time);
 uint32_t RISCGetTimer1(uint32_t offset, int fraction);

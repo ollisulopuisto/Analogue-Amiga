@@ -77,6 +77,24 @@ unsigned int GetTimer2()
     return (systimer);
 }
 
+// Timer 2 counts sysclk_frequency cycles of the 74.25 MHz MPU clock per tick
+// (10 ms with SetTimer), so scale it to milliseconds. Differences stay correct
+// across the wrap as the scale is applied modulo 2^32.
+unsigned int GetMilliseconds()
+{
+    unsigned int ms_per_tick = HW_SYSCLOCK(0) / 74250;
+    if (ms_per_tick == 0) ms_per_tick = 1;
+    return (HW_TIMER2(REG_MILLISECONDS) * ms_per_tick);
+}
+
+void WaitMilliseconds(unsigned int ms)
+{
+    unsigned int start = GetMilliseconds();
+    while ((GetMilliseconds() - start) < ms) {
+      asm volatile("");
+    }
+}
+
 unsigned int GetTimer2_fast() // as the per clock amount since reset.
 {
     unsigned int systimer = HW_TIMER2_FAST(REG_MILLISECONDS);

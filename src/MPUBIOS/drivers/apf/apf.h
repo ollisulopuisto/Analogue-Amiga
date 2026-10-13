@@ -50,6 +50,28 @@
 #define TARGET_DATASLOT_LBA_48_READ_REG      0x5
 #define TARGET_DATASLOT_LBA_48_WRITE_REG     0x6
 
+// File commands (bits 4 and 5 of the control write): 0x0190 and 0x0192
+#define TARGET_DATASLOT_GETFILE_REG   0x10
+#define TARGET_DATASLOT_OPENFILE_REG  0x20
+
+#define DATASLOT_PATH_LEN             256   // get_dataslot_file_t / open_dataslot_file_t path size
+
+// Results of 0x0192 (open new file into data slot)
+#define DATASLOT_OPEN_OK              0
+#define DATASLOT_OPEN_CREATED         1
+#define DATASLOT_OPEN_NO_SLOT         2
+#define DATASLOT_OPEN_NOT_FOUND       3
+#define DATASLOT_OPEN_BAD_PATH        4
+#define DATASLOT_OPEN_ERROR           5
+#define DATASLOT_FILE_TIMEOUT         7     // no answer from the host
+
+// The host reads the open_dataslot_file_t struct over the bridge. It is put in the
+// unused part of the data table BRAM (MPU 0xFFFF0800 = bridge 0xF8002800), which
+// Analogue made for host reads. Set to 0 to put it in MPU RAM like the read buffers.
+#define DATASLOT_OPENFILE_IN_DATATABLE 1
+#define DATASLOT_OPENFILE_TABLE_OFFSET 0x800
+#define DATASLOT_TABLE_BRIDGE_BASE     0xF8002000
+
 // APF commands and address locations
 #define APF_ADDRESS_OFFSET      0x00000000 // We want to make sure we advise the APF where the BRAM is of the CPU
 #define APF_ACK 0x10
@@ -89,6 +111,8 @@ uint32_t dataslot_read_lba(uint32_t length);
 uint32_t dataslot_read_lba_fast(uint32_t length,  bool wait_update);
 uint32_t dataslot_write_lba_set(uint16_t dataslot, uint32_t address, uint32_t offset);
 uint32_t dataslot_write_lba(uint32_t length,  bool update_address);
+uint32_t dataslot_get_filename(uint16_t dataslot, char *path);
+uint32_t dataslot_open_file(uint16_t dataslot, const char *path);
 bool      dataslot_ready();
 uint8_t   dataslot_status();
 
