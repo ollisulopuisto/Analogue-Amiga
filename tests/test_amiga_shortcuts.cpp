@@ -16,36 +16,18 @@ int main() {
     };
     shortcuts.set_callback(callback, &events);
 
-    printf("Running test: Unmodified X -> Space, A -> Return, Y -> joystick only...\n");
-    // Press X (bit 6)
-    shortcuts.process(1 << 6, false, false);
-    assert(events.size() == 1);
-    assert(events[0].first == AMIGA_SPACE && events[0].second == true);
-    assert(!shortcuts.suppress_joystick());
-    events.clear();
-
-    // Release X
-    shortcuts.process(0, false, false);
-    assert(events.size() == 1);
-    assert(events[0].first == AMIGA_SPACE && events[0].second == false);
-    events.clear();
-
-    // Y (bit 7) is fire 1 and B (bit 5) is jump: no keys
-    shortcuts.process((1 << 7) | (1 << 5), false, false);
+    printf("Running test: Unmodified face buttons -> joystick only, no keys...\n");
+    for (int bit = 4; bit <= 7; bit++) {
+        shortcuts.process(1u << bit, false, false);
+        assert(events.empty());
+        assert(!shortcuts.suppress_joystick());
+        shortcuts.process(0, false, false);
+        assert(events.empty());
+    }
+    shortcuts.process((1 << 4) | (1 << 5) | (1 << 6) | (1 << 7), false, false);
     assert(events.empty());
     shortcuts.process(0, false, false);
     assert(events.empty());
-
-    // Press A (bit 4)
-    shortcuts.process(1 << 4, false, false);
-    assert(events.size() == 1);
-    assert(events[0].first == AMIGA_RETURN && events[0].second == true);
-    events.clear();
-
-    shortcuts.process(0, false, false);
-    assert(events.size() == 1);
-    assert(events[0].first == AMIGA_RETURN && events[0].second == false);
-    events.clear();
 
     printf("Running test: Modifier L (bit 8) combos...\n");
     // Hold L (bit 8)
@@ -167,21 +149,16 @@ int main() {
     assert(events.empty());
     assert(!shortcuts.suppress_joystick()); // joystick must NOT be suppressed while L (brake) is held!
 
-    // Hold L + A in driving mode: L does not trigger shortcut layer
-    // In driving mode with L held (and !mod_r), unmodified buttons still work or do nothing depending on mapping
+    // Hold L + A in driving mode: L is the brake, not the shortcut layer, and
+    // unmodified face buttons are joystick only, so no key
     shortcuts.process((1 << 8) | (1 << 4), false, false, true);
-    // A -> Return (unmodified mapping)
-    assert(events.size() == 1);
-    assert(events[0].first == AMIGA_RETURN && events[0].second == true);
+    assert(events.empty());
     assert(!shortcuts.suppress_joystick());
-    events.clear();
 
     // Release all in driving mode
     shortcuts.process(0, false, false, true);
-    assert(events.size() == 1);
-    assert(events[0].first == AMIGA_RETURN && events[0].second == false);
+    assert(events.empty());
     assert(!shortcuts.suppress_joystick());
-    events.clear();
 
     printf("All shortcut tests passed successfully!\n");
     return 0;

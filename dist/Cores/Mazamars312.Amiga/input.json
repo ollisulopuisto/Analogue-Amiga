@@ -7,7 +7,7 @@
               "mappings": [
                     {
                         "id": 0,
-                        "name": "Return",
+                        "name": "Fire 1",
                         "key": "pad_btn_a"
                     },
                     {
@@ -17,7 +17,7 @@
                     },
                     {
                         "id": 2,
-                        "name": "Space",
+                        "name": "Fire 1",
                         "key": "pad_btn_x"
                     },
                     {

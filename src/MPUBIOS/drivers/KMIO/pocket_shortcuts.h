@@ -59,6 +59,7 @@ public:
         bool btn_y = (c1 & (1 << 7)) != 0;
         bool mod_l = (c1 & (1 << 8)) != 0;
         bool mod_r = (c1 & (1 << 9)) != 0;
+        (void)is_cd32_mode;  // face buttons type nothing unshifted in either pad mode
 
         uint8_t desired[MAX_KEYS];
         int count = 0;
@@ -89,12 +90,8 @@ public:
             }
         } else {
             suppress_joystick_ = false;
-            // No modifier held: in standard joystick mode (non-CD32), map X to Space and A to Return (unless R is held for mouse).
-            // Y is fire 1 and B is jump, Super Mario World style.
-            if (!is_cd32_mode && !mod_r) {
-                if (btn_x) desired[count++] = AMIGA_SPACE;
-                if (btn_a) desired[count++] = AMIGA_RETURN;
-            }
+            // No modifier held: face buttons are joystick only (A, X, Y fire,
+            // B jumps), never keys, so they can be mashed in a game.
         }
 
         // Release any keys that are active but not in desired

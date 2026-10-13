@@ -178,9 +178,11 @@ Do note that it takes a while to boot up, especially if you have a slow SD card.
 
 ### Control Profiles (interact.json)
 The core includes customized Pocket control profiles placed directly beneath the port options:
-* **Standard (D-pad & B)**: Traditional joystick where D-pad Up or Face B jumps and Face Y fires (Super Mario World layout: fire left of jump), X is Space, and A is Return. CD32 pad mode follows the real pad's 2x2 grid turned onto the diamond: B = red, A = blue, Y = green, X = yellow, with jump only on the D-pad.
-* **Platformer (Btn B Jump)**: Pure button jump layout for games like *Turrican II* and *Superfrog*. Button B is exclusively Jump (Up), suppressing accidental secondary fire. Button X triggers Space / Special weapons.
-* **Driving (L=Brake, R=Gas)**: Dedicated racing layout for games like *Lotus II* and *Super Cars*. Right trigger is Gas (Up), Left trigger is Brake/Reverse (Down), D-pad handles steering.
+Principle: face buttons on their own are joystick only and never type keys, so they can be mashed freely in a game. Keys need L or R held (shortcut layers below).
+
+* **Standard (D-pad & B)**: Traditional joystick where A, X and Y are fire 1 (A is the Pocket's own accept button) and D-pad Up or B jumps (B is also fire 2). CD32 pad mode follows the real pad's 2x2 grid turned onto the diamond: B = red, A = blue, Y = green, X = yellow, with jump only on the D-pad.
+* **Platformer (Btn B Jump)**: Pure button jump layout for games like *Turrican II* and *Superfrog*. Button B is exclusively Jump (Up), suppressing accidental secondary fire. Space and other keys are on the L layer.
+* **Driving (L=Brake, R=Gas)**: Dedicated racing layout for games like *Lotus II* and *Super Cars*. Right trigger is Gas (Up), Left trigger is Brake/Reverse (Down), D-pad handles steering, all four face buttons fire. No keys in this mode (L and R are pedals).
 * **Mouse (D-pad & A/B Clicks)**: Turns the Pocket D-pad into a mouse cursor. Button A = Left Click, Button B = Right Click, Button X = Middle Click.
 
 ### In-Game Shortcuts & Hotkeys

@@ -248,12 +248,10 @@ always @ (posedge clk) begin
 end
 
 // Face button remap (see core_top.v; bits 11-13 = raw Up, A, B).
-// Joystick: swap A (bit 4) and Y (bit 7) so fire sits left of jump (B), Super Mario World style.
+// Joystick: as core_top builds it (A, X, Y fire 1; B fire 2/jump).
 // CD32: red = B, blue = A, green = Y, yellow = X, with raw D-pad Up so red never doubles as Up.
-wire [15:0] _joy1_m = cd32pad ? {_joy1[15:8], _joy1[7], _joy1[6], _joy1[12], _joy1[13], _joy1[11], _joy1[2:0]}
-                              : {_joy1[15:8], _joy1[4], _joy1[6:5], _joy1[7], _joy1[3:0]};
-wire [15:0] _joy2_m = cd32pad ? {_joy2[15:8], _joy2[7], _joy2[6], _joy2[12], _joy2[13], _joy2[11], _joy2[2:0]}
-                              : {_joy2[15:8], _joy2[4], _joy2[6:5], _joy2[7], _joy2[3:0]};
+wire [15:0] _joy1_m = cd32pad ? {_joy1[15:8], _joy1[7], _joy1[6], _joy1[12], _joy1[13], _joy1[11], _joy1[2:0]} : _joy1;
+wire [15:0] _joy2_m = cd32pad ? {_joy2[15:8], _joy2[7], _joy2[6], _joy2[12], _joy2[13], _joy2[11], _joy2[2:0]} : _joy2;
 wire [15:0] joy1 = joy_ana_en ? {{12{1'b1}}, _joy1_m[6], 1'b1, _joy1_m[4], _joy1_m[5]} : _joy1_m;
 wire [15:0] joy2 = joy_ana_en ? {{12{1'b1}}, _joy2_m[6], 1'b1, _joy2_m[4], _joy2_m[5]} : _joy2_m;
 
