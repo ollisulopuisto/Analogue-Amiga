@@ -79,6 +79,8 @@ input   wire            savestate_load_err,
 input   wire            target_dataslot_read,       // rising edge triggered
 input   wire            target_dataslot_write,
 input   wire 				target_dataslot_enableLBA48,
+input   wire            target_dataslot_getfile,    // rising edge: 0x0190 get file name of slot into bridgeaddr
+input   wire            target_dataslot_openfile,   // rising edge: 0x0192 open file struct at bridgeaddr into slot
 
 output  reg             target_dataslot_ack,        // asserted upon command start until completion
 output  reg             target_dataslot_done,       // asserted upon command finish until next command is issued    
@@ -182,6 +184,8 @@ localparam  [3:0]   TARG_ST_WAITRESULT_DSO  = 'd15;
     reg             status_setup_done_1, status_setup_done_queue;
     reg             target_dataslot_read_1, target_dataslot_read_queue;
     reg             target_dataslot_write_1, target_dataslot_write_queue;
+    reg             target_dataslot_getfile_1, target_dataslot_getfile_queue;
+    reg             target_dataslot_openfile_1, target_dataslot_openfile_queue;
     
     
 initial begin
@@ -198,6 +202,8 @@ initial begin
     status_setup_done_queue <= 0;
     target_dataslot_read_queue <= 0;
     target_dataslot_write_queue <= 0;
+    target_dataslot_getfile_queue <= 0;
+    target_dataslot_openfile_queue <= 0;
     target_dataslot_ack <= 0;
     target_dataslot_done <= 0;
     target_dataslot_err <= 0;
@@ -210,6 +216,8 @@ always @(posedge clk) begin
     status_setup_done_1 <= status_setup_done;
     target_dataslot_read_1 <= target_dataslot_read;
     target_dataslot_write_1 <= target_dataslot_write;
+    target_dataslot_getfile_1 <= target_dataslot_getfile;
+    target_dataslot_openfile_1 <= target_dataslot_openfile;
     
     if(status_setup_done & ~status_setup_done_1) begin
         status_setup_done_queue <= 1;
@@ -219,6 +227,12 @@ always @(posedge clk) begin
     end
     if(target_dataslot_write & ~target_dataslot_write_1) begin
         target_dataslot_write_queue <= 1;
+    end
+    if(target_dataslot_getfile & ~target_dataslot_getfile_1) begin
+        target_dataslot_getfile_queue <= 1;
+    end
+    if(target_dataslot_openfile & ~target_dataslot_openfile_1) begin
+        target_dataslot_openfile_queue <= 1;
     end
     
     
@@ -500,6 +514,26 @@ always @(posedge clk) begin
             target_2C <= target_dataslot_length;
             
             tstate <= TARG_ST_DATASLOTOP;
+            
+        end else if(target_dataslot_getfile_queue) begin
+            // Get filename of data slot: host writes the 256 byte path to the pointer
+            target_dataslot_getfile_queue <= 0;
+            target_0[15:0] <= 16'h0190;
+            
+            target_20 <= {16'h0, target_dataslot_id};
+            target_24 <= target_dataslot_bridgeaddr;
+            
+            tstate <= TARG_ST_DATASLOTOP;
+            
+        end else if(target_dataslot_openfile_queue) begin
+            // Open new file into data slot: host reads the path/flags/size struct at the pointer
+            target_dataslot_openfile_queue <= 0;
+            target_0[15:0] <= 16'h0192;
+            
+            target_20 <= {16'h0, target_dataslot_id};
+            target_24 <= target_dataslot_bridgeaddr;
+            
+            tstate <= TARG_ST_DATASLOTOP;
         end 
     end
     TARG_ST_READYTORUN: begin
@@ -510,6 +544,9 @@ always @(posedge clk) begin
         target_0[31:16] <= 16'h636D;
         
         target_dataslot_done <= 0;
+        // clear the last result so a failed file command (e.g. 3 = file not found)
+        // is not seen as an error by the next read before it completes
+        target_dataslot_err <= 0;
         tstate <= TARG_ST_WAITRESULT_DSO;
     end
     TARG_ST_WAITRESULT_DSO: begin

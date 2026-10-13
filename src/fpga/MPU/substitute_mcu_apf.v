@@ -41,6 +41,8 @@ module substitute_mcu_apf_mister(
 	output reg             	target_dataslot_read,       // rising edge triggered
 	output reg             	target_dataslot_write,
 	output reg       			target_dataslot_enableLBA48,
+	output reg             	target_dataslot_getfile,    // rising edge: 0x0190 get file name of target_dataslot_id
+	output reg             	target_dataslot_openfile,   // rising edge: 0x0192 open new file into target_dataslot_id
 
 	input                  	target_dataslot_ack,        // asserted upon command start until completion
 	input                  	target_dataslot_done,       // asserted upon command finish until next command is issued    
@@ -483,7 +485,11 @@ end
 					 Bit 3 - target_dataslot_done, 
 					 Bit [2:0] target_dataslot_err[2:0]} 
 	32'hFFFF_FF90 - target_dataslot Controls (W)
-					{Bit 1 - target_dataslot_write - Send a Write signal to the APF ( the target id, Bridgeaddr, length and offset need to be written to first)
+					{Bit 5 - target_dataslot_openfile - Send 0x0192 open new file into data slot (id and Bridgeaddr of the open_dataslot_file_t struct)
+					 Bit 4 - target_dataslot_getfile - Send 0x0190 get file name of data slot (id and Bridgeaddr of the 256 byte path buffer)
+					 Bit 3 - externalInterrupt_enabled
+					 Bit 2 - target_dataslot_enableLBA48
+					 Bit 1 - target_dataslot_write - Send a Write signal to the APF ( the target id, Bridgeaddr, length and offset need to be written to first)
 					 Bit 0 - target_dataslot_read - Send a read signal to the APF ( the target id, Bridgeaddr, length and offset need to be written to first)
 	
 	32'hFFFF_FFA4 - Bit 0 Reset_out - Used for reseting the core if required (R/W)
@@ -546,6 +552,8 @@ always @(posedge clk_mpu) begin
 	dataslot_update_ack <= 'b0;
 	target_dataslot_write <= 'b0;
 	target_dataslot_read <= 'b0;
+	target_dataslot_getfile <= 'b0;
+	target_dataslot_openfile <= 'b0;
 	target_dataslot_done_reg <= target_dataslot_done;
 	if (target_dataslot_done && ~target_dataslot_done_reg && externalInterrupt_enabled) externalInterrupt <= 1'b1;
 	else  externalInterrupt <= 1'b0;
@@ -759,7 +767,8 @@ always @(posedge clk_mpu) begin
 					target_dataslot_slotoffset <= dBus_cmd_payload_data;
 					end
 					'h90 : begin // target_dataslot_slotoffset read
-					{externalInterrupt_enabled, target_dataslot_enableLBA48, target_dataslot_write, target_dataslot_read} <= dBus_cmd_payload_data;
+					{externalInterrupt_enabled, target_dataslot_enableLBA48, target_dataslot_write, target_dataslot_read} <= dBus_cmd_payload_data[3:0];
+					{target_dataslot_openfile, target_dataslot_getfile} <= dBus_cmd_payload_data[5:4];
 					end
 					// uart_divisor set
 					'h94 : begin 

@@ -414,6 +414,8 @@ end
     wire             target_dataslot_read;       
     wire             target_dataslot_write;
 	 wire 				target_dataslot_enableLBA48;
+    wire             target_dataslot_getfile;
+    wire             target_dataslot_openfile;
 
 
     wire            target_dataslot_ack;        
@@ -505,6 +507,8 @@ core_bridge_cmd icb (
     .target_dataslot_slotoffset ( target_dataslot_slotoffset ),
     .target_dataslot_slotoffsetLBA48 ( target_dataslot_slotoffsetLBA48 ),
 		.target_dataslot_enableLBA48	(target_dataslot_enableLBA48),
+    .target_dataslot_getfile    ( target_dataslot_getfile ),
+    .target_dataslot_openfile   ( target_dataslot_openfile ),
     .target_dataslot_bridgeaddr ( target_dataslot_bridgeaddr ),
     .target_dataslot_length     ( target_dataslot_length ),
 
@@ -843,6 +847,8 @@ substitute_mcu_apf_mister substitute_mcu_apf_mister(
 		.dataslot_update_size       	( dataslot_update_size ),
 		.dataslot_update_size_lba48   ( dataslot_update_size_lba48 ),
 		.target_dataslot_enableLBA48	(target_dataslot_enableLBA48),
+		.target_dataslot_getfile    	( target_dataslot_getfile ),
+		.target_dataslot_openfile   	( target_dataslot_openfile ),
 	  
 		.target_dataslot_read       	( target_dataslot_read ),
 		.target_dataslot_write      	( target_dataslot_write ),
