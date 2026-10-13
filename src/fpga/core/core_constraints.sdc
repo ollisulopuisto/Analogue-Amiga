@@ -4,16 +4,15 @@
 # put your clock groups in here as well as any net assignments
 #
 
+# All PLL outputs (clk_114, clk_sys, video clocks) are one synchronous
+# family; they are matched by their real names, not counter[N].
+set pll_clks [get_clocks {ic|pll|pll_inst|altera_pll_i|*|divclk}]
+
 set_clock_groups -asynchronous \
  -group { bridge_spiclk } \
  -group { clk_74a } \
  -group { clk_74b } \
- -group { ic|pll|pll_inst|altera_pll_i|general[0].gpll~PLL_OUTPUT_COUNTER|divclk } \
- -group { ic|pll|pll_inst|altera_pll_i|counter[1].gpll~PLL_OUTPUT_COUNTER|divclk } \
- -group { ic|pll|pll_inst|altera_pll_i|counter[2].gpll~PLL_OUTPUT_COUNTER|divclk } \
- -group { ic|pll|pll_inst|altera_pll_i|counter[3].gpll~PLL_OUTPUT_COUNTER|divclk } \
- -group { ic|pll|pll_inst|altera_pll_i|counter[4].gpll~PLL_OUTPUT_COUNTER|divclk }     
- 
+ -group $pll_clks
 
 set dram_chip_clk "ic|pll|pll_inst|altera_pll_i|counter[0].gpll~PLL_OUTPUT_COUNTER|divclk"
 set dram_cont_clk "ic|pll|pll_inst|altera_pll_i|counter[1].gpll~PLL_OUTPUT_COUNTER|divclk"
