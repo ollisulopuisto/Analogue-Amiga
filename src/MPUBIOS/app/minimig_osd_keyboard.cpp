@@ -753,7 +753,7 @@ void OSD_Keyboard_process(){
             keyboard_last_sent_key = 0;
         }
     } else {    
-        OsdDisable();
+        if (!osd_popup_active()) OsdDisable(); // leave a disk / status popup up
         uint32_t tmp = CORE_OUTPUT_REGISTOR();
         tmp = tmp & 0xFFFFFFCF;
         CORE_OUTPUT_REGISTOR() = tmp;

@@ -57,6 +57,7 @@ extern unsigned int keytable[16];
 extern unsigned int mouse_counter;
 extern signed short x_count;
 extern signed short y_count;
+extern volatile bool fdd_next_disk_request;
 
 void input_allow_osd(bool keyboard_active);
 void input_update();

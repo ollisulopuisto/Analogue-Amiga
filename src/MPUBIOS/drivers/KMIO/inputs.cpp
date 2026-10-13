@@ -27,6 +27,7 @@
 #include "inputs.h"
 #include "pocket_shortcuts.h"
 #include "minimig_config.h"
+#include "osd_popup.h"
 int interupt_amount_timer = 0;
 unsigned int mouse_counter={0};
 signed short x_count = 0;
@@ -35,6 +36,8 @@ bool mouse_enabled = 0;
 bool mouse_enabled_press = 0;
 bool mouse_enabled_press_old = 0;
 bool disk_swap_press_old = 0;
+bool next_disk_press_old = 0;
+volatile bool fdd_next_disk_request = 0; // L + Start, handled in the main loop
 
 uint8_t keyboard_buffer[6];
 bool    MOD_LALT;
@@ -53,11 +56,13 @@ void input_allow_osd(bool keyboard_active){
 }
 
 void update_mouse_inputs (){
-  mouse_enabled_press = ((CONTROLLER_KEY_REG(1) >> 15) & 0x1) ; //|| ( ((CONTROLLER_KEY_REG(1)>>28) == 0x3) && ((CONTROLLER_KEY_REG(1) >> 15) & 0x1))
+  // Start toggles the mouse; L + Start is next disk
+  mouse_enabled_press = ((CONTROLLER_KEY_REG(1) >> 15) & 0x1) && !((CONTROLLER_KEY_REG(1) >> 8) & 0x1); //|| ( ((CONTROLLER_KEY_REG(1)>>28) == 0x3) && ((CONTROLLER_KEY_REG(1) >> 15) & 0x1))
   if (keyboard_osd_showing == 1) {
     mouse_enabled = 0;
   } else if (mouse_enabled_press && !mouse_enabled_press_old) {
     mouse_enabled = !mouse_enabled;
+    osd_popup_cancel(); // the mouse message takes over the OSD
     
     OsdUpdate(0);
     OsdClear();
@@ -84,7 +89,7 @@ void update_mouse_inputs (){
   if (keyboard_osd_showing == 0){
     if (mouse_enabled_press){
       InfoEnable(10, 10, 32, 3, 291, 31744); // Had to use the info as some of the PCE outputs are smaller
-    } else {
+    } else if (!osd_popup_active()) {
       OsdDisable();
     }
   }
@@ -323,6 +328,15 @@ void input_update() {
       minimig_fdd_swap_disks();
     }
     disk_swap_press_old = disk_swap_press;
+
+    // Next disk: hold L and press Start. Also in Driving mode, where L is the brake.
+    // Opening the file needs host commands and waits, so the main loop does it.
+    bool btn_start = (c1 & (1 << 15)) != 0;
+    bool next_disk_press = mod_l && btn_start && !keyboard_osd_showing;
+    if (next_disk_press && !next_disk_press_old) {
+      fdd_next_disk_request = 1;
+    }
+    next_disk_press_old = next_disk_press;
 
     uint8_t control_mode = (AFP_REGISTOR(6) & 0x3);
     bool is_driving = (control_mode == 2);

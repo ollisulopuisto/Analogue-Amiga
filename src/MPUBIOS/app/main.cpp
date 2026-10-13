@@ -35,6 +35,7 @@
 #include "spi.h"
 #include "core.h"
 #include "minimig_osd_keyboard.h"
+#include "osd_popup.h"
 // #include "osd_menu.h"
 
 void init()
@@ -89,6 +90,13 @@ void mainloop()
     input_reg_update();
     core_reg_update();
     OSD_Keyboard_process();
+
+    // L + Start from the input interrupt: open the next disk of the set into DF0
+    if (fdd_next_disk_request) {
+      fdd_next_disk_request = 0;
+      minimig_fdd_next_disk();
+    }
+    osd_popup_poll();
 
     // This checks if we are wanting to do a reboot of the core from the interaction menu. We want to do this last so nothing is held in the buffers
     if (AFP_REGISTOR(0) & 0x3) { // This has 2 bits for reseting the core

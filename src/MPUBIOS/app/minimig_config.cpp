@@ -24,6 +24,8 @@
 
 
  #include "minimig_config.h"
+ #include "disk_name.h"
+ #include "osd_popup.h"
 
 
 void minimig_bios (){
@@ -171,8 +173,26 @@ void minimig_detect_game_profile() {
   mainprintf("Auto-detected profile: STANDARD JOYSTICK\r\n");
 }
 
+// File names of the floppy data slots for the status line
+#define FDD_NAME_UNKNOWN 0
+#define FDD_NAME_KNOWN   1
+#define FDD_NAME_NONE    2
+#define FDD_STATUS_NAME_WIDTH 23 // "DF0 T79 " + name in a 31 character line
+static char    fdd_slot_name[4][FDD_STATUS_NAME_WIDTH + 1];
+static uint8_t fdd_slot_name_state[4];
+static char    fdd_path[DATASLOT_PATH_LEN];
+static char    fdd_next_path[DATASLOT_PATH_LEN];
+
+static void fdd_set_slot_name(uint32_t dataslot, const char *path) {
+  uint32_t i = dataslot - DATASLOT_FDD_BASE;
+  if (i > 3) return;
+  disk_name_fit(path, fdd_slot_name[i], FDD_STATUS_NAME_WIDTH);
+  fdd_slot_name_state[i] = FDD_NAME_KNOWN;
+}
+
 void minimig_fdd_update(){
   bool df0_was_empty = (df[0].status == 0);
+  for (int n = 0; n < 4; n++) fdd_slot_name_state[n] = FDD_NAME_UNKNOWN;
   int i = 0;
   while (i != 4)
   {
@@ -225,6 +245,77 @@ void minimig_fdd_swap_disks(){
 
   UpdateDriveStatus_fdd();
   mainprintf("Disk rotation complete! New DF0 dataslot: %d\r\n", df[0].dataslot);
+}
+
+static bool fdd_same_path(const char *a, const char *b) {
+  while (*a && *a == *b) {
+    a++;
+    b++;
+  }
+  return (*a == *b);
+}
+
+static void fdd_message(const char *text, const char *path) {
+  char msg[32];
+  int o = disk_name_append(msg, 0, sizeof(msg), text);
+  if (path) disk_name_fit(path, msg + o, (int)sizeof(msg) - 1 - o);
+  osd_popup_show(msg, 3000, OSD_POPUP_MESSAGE);
+}
+
+// Next disk (L + Start): open the next file of a multi-disk set into the data slot
+// of DF0 ("Game (Disk 1 of 3).adf" -> "Game (Disk 2 of 3).adf"), back to disk 1
+// after the last one, and change the disk in DF0. Runs in the main loop.
+void minimig_fdd_next_disk(){
+  if (!(df[0].status & DSK_INSERTED)) {
+    fdd_message("DF0: no disk inserted", 0);
+    return;
+  }
+  uint32_t dataslot = df[0].dataslot; // L + Select may have rotated another slot into DF0
+  uint32_t old_size = df[0].size;
+
+  uint32_t result = dataslot_get_filename(dataslot, fdd_path);
+  if (result || !fdd_path[0]) {
+    fdd_message("DF0: no file name from host", 0);
+    return;
+  }
+  if (!disk_name_step(fdd_path, fdd_next_path, sizeof(fdd_next_path), 0)) {
+    fdd_message("DF0: no disk number in name", 0);
+    return;
+  }
+  result = dataslot_open_file(dataslot, fdd_next_path);
+  if (result == DATASLOT_OPEN_NOT_FOUND) {
+    // Past the last disk of the set: back to disk 1
+    if (disk_name_step(fdd_path, fdd_next_path, sizeof(fdd_next_path), 1) && !fdd_same_path(fdd_next_path, fdd_path)) {
+      result = dataslot_open_file(dataslot, fdd_next_path);
+    }
+  }
+  if (result != DATASLOT_OPEN_OK && result != DATASLOT_OPEN_CREATED) {
+    // Keep the disk that is in the drive
+    uint32_t reopen = dataslot_open_file(dataslot, fdd_path);
+    if (reopen != DATASLOT_OPEN_OK) fdd_message("DF0: disk change failed", 0);
+    else if (result == DATASLOT_OPEN_NOT_FOUND) fdd_message("DF0: no next disk found", 0);
+    else {
+      char msg[32];
+      int o = disk_name_append(msg, 0, sizeof(msg), "DF0: open failed, error ");
+      disk_name_append_uint(msg, o, sizeof(msg), result, 1);
+      osd_popup_show(msg, 3000, OSD_POPUP_MESSAGE);
+    }
+    return;
+  }
+
+  // Eject so Paula raises DSKCHG, give the Amiga time to see the empty drive,
+  // then insert the new file. The host may not update the size in the data slot
+  // table for 0x0192, so a size that is not a whole number of tracks keeps the old one.
+  UnsertFloppy(&df[0]);
+  WaitMilliseconds(400);
+  uint32_t size = dataslot_size(dataslot);
+  if (size == 0 || (size % (512 * 11)) != 0 || size > (MAX_TRACKS * 512 * 11 * 2)) size = old_size;
+  InsertFloppy(&df[0], size, dataslot);
+  UpdateDriveStatus_fdd();
+
+  fdd_set_slot_name(dataslot, fdd_next_path);
+  fdd_message("DF0: ", fdd_next_path);
+  mainprintf("Next disk in DF0: %s (%d bytes)\r\n", fdd_next_path, size);
 }
 
 void minimig_hdd_update(){

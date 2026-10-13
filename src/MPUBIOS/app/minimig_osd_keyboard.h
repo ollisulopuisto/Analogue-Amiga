@@ -33,6 +33,7 @@
 #include "spi.h"
 #include "osd.h"
 #include "inputs.h"
+#include "osd_popup.h"
 void OSD_Keyboard_process();
 
 static const uint8_t osdKeyboardlocater[6][15] = {
