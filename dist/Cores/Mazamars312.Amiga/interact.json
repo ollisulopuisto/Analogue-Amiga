@@ -276,15 +276,32 @@
         ]
       },
       {
-        "name": "FDD / HDD LED",
+        "name": "Drive Indicator",
         "id": 121,
-        "type": "check",
+        "type": "list",
         "enabled": true,
+        "persist": true,
         "address": "0xf000001C",
         "defaultval": 0,
-        "value": 0,
-        "value_off": 1,
-        "mask": "0xFFFFFFFE"
+        "mask": "0xFFFFFEFE",
+        "options": [
+          {
+            "value": "0x0000",
+            "name": "LEDs"
+          },
+          {
+            "value": "0x0101",
+            "name": "Status Line"
+          },
+          {
+            "value": "0x0100",
+            "name": "LEDs + Status Line"
+          },
+          {
+            "value": "0x0001",
+            "name": "Off"
+          }
+        ]
       },
       {
         "name": "Audio Filter",

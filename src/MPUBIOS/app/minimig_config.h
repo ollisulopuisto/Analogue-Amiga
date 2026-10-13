@@ -48,11 +48,16 @@ extern "C" {
 #define UIO_MM2_JOY     0xF8
 #define UIO_MM2_MIR     0xF9
 
+// Menu reg 7 (0xf000001C): bit 0 = LEDs off, bit 8 = floppy status line
+#define FDD_STATUS_ENABLE 0x100
+
 void minimig_restart_first();
 void minimig_restart_running_core();
 void minimig_fdd_update();
 void minimig_fdd_swap_disks();
 void minimig_fdd_next_disk();
+void minimig_fdd_status_note(uint8_t drive, uint8_t track);
+void minimig_fdd_status_update();
 void minimig_floppy_config_update();
 void minimig_hdd_update();
 void minimig_detect_game_profile();

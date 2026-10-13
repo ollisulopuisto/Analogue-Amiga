@@ -96,6 +96,7 @@ void mainloop()
       fdd_next_disk_request = 0;
       minimig_fdd_next_disk();
     }
+    minimig_fdd_status_update();
     osd_popup_poll();
     minimig_floppy_config_update();
 

@@ -48,6 +48,7 @@
    		spi_w(0);
    		spi_w(0);
    		HPS_DisableFpga();
+        if (c1 & (CMD_RDTRK | CMD_WRTRK)) minimig_fdd_status_note((c1 >> 6) & 0x03, c2);
         HandleFDD(c1, c2);
 		uint16_t sd_req = ide_check();
 		if ((sd_req >> 3) == 5) mainprintf ("\033[38;1;5m %d sdreq5\033[0m\r\n", sd_req >> 3);

@@ -335,6 +335,44 @@ void minimig_fdd_next_disk(){
   mainprintf("Next disk in DF0: %s (%d bytes)\r\n", fdd_next_path, size);
 }
 
+// Floppy status line ("DF0 T40 Game (Disk 1 of 3)") while the drives are read
+// or written, when Drive Indicator is set to Status (menu reg 7 bit 8)
+static bool    fdd_status_pending;
+static uint8_t fdd_status_drive;
+static uint8_t fdd_status_track;
+
+void minimig_fdd_status_note(uint8_t drive, uint8_t track){
+  fdd_status_drive = drive & 0x3;
+  fdd_status_track = track;
+  fdd_status_pending = 1;
+}
+
+void minimig_fdd_status_update(){
+  if (!fdd_status_pending) return;
+  fdd_status_pending = 0;
+  if (!(AFP_REGISTOR(7) & FDD_STATUS_ENABLE)) return;
+
+  adfTYPE *drive = &df[fdd_status_drive];
+  char msg[32];
+  int o = disk_name_append(msg, 0, sizeof(msg), "DF");
+  o = disk_name_append_uint(msg, o, sizeof(msg), fdd_status_drive, 1);
+  o = disk_name_append(msg, o, sizeof(msg), " T");
+  // The core counts tracks per side (cylinder * 2 + head); show the cylinder
+  o = disk_name_append_uint(msg, o, sizeof(msg), fdd_status_track >> 1, 2);
+  uint32_t i = drive->dataslot - DATASLOT_FDD_BASE;
+  if ((drive->status & DSK_INSERTED) && i <= 3) {
+    if (fdd_slot_name_state[i] == FDD_NAME_UNKNOWN) {
+      if (dataslot_get_filename(drive->dataslot, fdd_path) == 0 && fdd_path[0]) fdd_set_slot_name(drive->dataslot, fdd_path);
+      else fdd_slot_name_state[i] = FDD_NAME_NONE;
+    }
+    if (fdd_slot_name_state[i] == FDD_NAME_KNOWN) {
+      o = disk_name_append(msg, o, sizeof(msg), " ");
+      disk_name_append(msg, o, sizeof(msg), fdd_slot_name[i]);
+    }
+  }
+  osd_popup_show(msg, 1000, OSD_POPUP_STATUS);
+}
+
 void minimig_hdd_update(){
   mainprintf("Harddrive are being setup in the core\r\n");
     int temp = 0;
