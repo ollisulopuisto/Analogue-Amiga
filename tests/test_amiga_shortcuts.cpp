@@ -2,9 +2,87 @@
 #include <cstdio>
 #include <vector>
 #include <cstdint>
+#include <cstring>
 
 // Forward declaration of the shortcut logic to be implemented
 #include "../src/MPUBIOS/drivers/KMIO/pocket_shortcuts.h"
+#include "../src/MPUBIOS/drivers/floppy_drive/disk_name.h"
+
+static void expect_step(const char *in, int to_first, const char *want) {
+    char out[256];
+    int ok = disk_name_step(in, out, sizeof(out), to_first);
+    if (!want) {
+        if (ok) printf("  unexpected step: %s -> %s\n", in, out);
+        assert(!ok);
+        return;
+    }
+    if (!ok || strcmp(out, want) != 0) printf("  step failed: %s -> %s (want %s)\n", in, ok ? out : "<none>", want);
+    assert(ok && strcmp(out, want) == 0);
+}
+
+static void expect_fit(const char *in, int width, const char *want) {
+    char out[64];
+    disk_name_fit(in, out, width);
+    if (strcmp(out, want) != 0) printf("  fit failed: %s -> '%s' (want '%s')\n", in, out, want);
+    assert(strcmp(out, want) == 0);
+    assert((int)strlen(out) <= width);
+}
+
+static void test_disk_names() {
+    printf("Running test: next disk file names...\n");
+    expect_step("/Assets/amiga/common/Game (Disk 1 of 3).adf", 0, "/Assets/amiga/common/Game (Disk 2 of 3).adf");
+    expect_step("/Assets/amiga/common/Game (Disk 2 of 3).adf", 0, "/Assets/amiga/common/Game (Disk 3 of 3).adf");
+    expect_step("/Assets/amiga/common/Game (Disk 3 of 3).adf", 0, "/Assets/amiga/common/Game (Disk 1 of 3).adf");
+    expect_step("Game (disk 9 of 12).adf", 0, "Game (disk 10 of 12).adf");
+    expect_step("Game (Disk 12 of 12).adf", 0, "Game (Disk 1 of 12).adf");
+    expect_step("Game Disk1.adf", 0, "Game Disk2.adf");
+    expect_step("Game_Disk_1.adf", 0, "Game_Disk_2.adf");
+    expect_step("Game-Disk-01.ADF", 0, "Game-Disk-02.ADF");
+    expect_step("Game DISK#9.adf", 0, "Game DISK#10.adf");
+    expect_step("Game-1.adf", 0, "Game-2.adf");
+    expect_step("Game_1.adf", 0, "Game_2.adf");
+    expect_step("Game 9.adf", 0, "Game 10.adf");
+    expect_step("Game (Disk A).adf", 0, "Game (Disk B).adf");
+    expect_step("Game (disk b).adf", 0, "Game (disk c).adf");
+    expect_step("Game (Disk Z).adf", 0, "Game (Disk A).adf");
+    // "disk" wins over a trailing number, and a word starting with "disk" is skipped
+    expect_step("Diskworld (Disk 1 of 2) v2.adf", 0, "Diskworld (Disk 2 of 2) v2.adf");
+    expect_step("Discworld 2 Disk 3 1995.adf", 0, "Discworld 2 Disk 4 1995.adf");
+    expect_step("Diskworld 2.adf", 0, "Diskworld 3.adf");
+    // Directories are never touched
+    expect_step("/Assets/amiga/Disk 1/Game-1.adf", 0, "/Assets/amiga/Disk 1/Game-2.adf");
+    // Back to the first disk
+    expect_step("Game (Disk 3 of 3).adf", 1, "Game (Disk 1 of 3).adf");
+    expect_step("Game Disk05.adf", 1, "Game Disk01.adf");
+    expect_step("Game (Disk C).adf", 1, "Game (Disk A).adf");
+    expect_step("Game-4.adf", 1, "Game-1.adf");
+    // No disk index
+    expect_step("Workbench.adf", 0, nullptr);
+    expect_step("Game (1990).adf", 0, nullptr);
+    expect_step("/Assets/amiga/Disk 2/Game.adf", 0, nullptr);
+    expect_step("Diskette.adf", 0, nullptr);
+    // Output buffer too small
+    {
+        char small[8];
+        assert(!disk_name_step("Game Disk1.adf", small, sizeof(small), 0));
+    }
+
+    printf("Running test: OSD file name fitting...\n");
+    expect_fit("/Assets/amiga/common/Game (Disk 2 of 3).adf", 26, "Game (Disk 2 of 3)");
+    expect_fit("Workbench", 26, "Workbench");
+    expect_fit("/a/Monkey Island 2 - LeChuck's Revenge (Disk 5 of 11).adf", 26, "Monkey Islan~Disk 5 of 11)");
+    expect_fit("/a/0123456789.adf", 5, "01~89");
+    {
+        char out[32];
+        int o = disk_name_append(out, 0, sizeof(out), "DF");
+        o = disk_name_append_uint(out, o, sizeof(out), 0, 1);
+        o = disk_name_append(out, o, sizeof(out), " T");
+        o = disk_name_append_uint(out, o, sizeof(out), 7, 2);
+        assert(strcmp(out, "DF0 T07") == 0 && o == 7);
+        o = disk_name_append(out, 0, 4, "ABCDEFG");
+        assert(strcmp(out, "ABC") == 0 && o == 3);
+    }
+}
 
 int main() {
     PocketShortcuts shortcuts;
@@ -159,6 +237,8 @@ int main() {
     shortcuts.process(0, false, false, true);
     assert(events.empty());
     assert(!shortcuts.suppress_joystick());
+
+    test_disk_names();
 
     printf("All shortcut tests passed successfully!\n");
     return 0;
