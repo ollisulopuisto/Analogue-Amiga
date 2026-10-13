@@ -96,32 +96,6 @@
         "size_exact": 0,
         "size_maximum": 1572864,
         "address": "0x00000000"
-      },
-	  {
-        "name": "Floppy Drive 2",
-        "id": "322",
-        "required": false,
-		"deferload": true,
-        "parameters": 1,
-        "extensions": [
-		"adf"
-		],
-        "size_exact": 0,
-        "size_maximum": 1572864,
-        "address": "0x00000000"
-      },
-	  {
-        "name": "Floppy Drive 3",
-        "id": "323",
-        "required": false,
-		"deferload": true,
-        "parameters": 1,
-        "extensions": [
-		"adf"
-		],
-        "size_exact": 0,
-        "size_maximum": 1572864,
-        "address": "0x00000000"
       }
     ]
   }

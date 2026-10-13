@@ -232,36 +232,29 @@ void minimig_fdd_update(){
   }
 }
 
-// Rotate floppy disks among drives: DF0 <- DF1 <- DF2 <- DF3 <- DF0
+// Swap the disks in DF0 and DF1 (the core has two floppy drives)
 void minimig_fdd_swap_disks(){
-  // Check how many drives actually have disks
-  int loaded_count = 0;
-  for (int d = 0; d < 4; d++) {
-    if (df[d].status & DSK_INSERTED) loaded_count++;
-  }
-  if (loaded_count <= 1) {
-    mainprintf("No additional disks loaded to swap\r\n");
+  if (!(df[0].status & DSK_INSERTED) && !(df[1].status & DSK_INSERTED)) {
+    mainprintf("No disks loaded to swap\r\n");
     return;
   }
 
-  mainprintf("Swapping disks among drives (rotating DF0<-DF1<-DF2<-DF3)\r\n");
+  mainprintf("Swapping disks DF0 <-> DF1\r\n");
   // Temporarily signal disk ejection on all drives so Amiga trackdisk detects the disk change
   RemoveDriveStatus();
   riscusleep(400000);
 
   adfTYPE temp = df[0];
   df[0] = df[1];
-  df[1] = df[2];
-  df[2] = df[3];
-  df[3] = temp;
+  df[1] = temp;
 
-  for (int d = 0; d < 4; d++) {
+  for (int d = 0; d < 2; d++) {
     df[d].track_prev = -1;
     df[d].sector_offset = 0;
   }
 
   UpdateDriveStatus_fdd();
-  mainprintf("Disk rotation complete! New DF0 dataslot: %d\r\n", df[0].dataslot);
+  mainprintf("Disk swap complete! New DF0 dataslot: %d\r\n", df[0].dataslot);
 }
 
 static bool fdd_same_path(const char *a, const char *b) {

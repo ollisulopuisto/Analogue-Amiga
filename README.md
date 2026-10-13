@@ -188,7 +188,7 @@ Principle: face buttons on their own are joystick only and never type keys, so t
 ### In-Game Shortcuts & Hotkeys
 * **Hold R-Trigger (Momentary Mouse)**: Instantly switches the D-pad to a high-precision mouse cursor and Face buttons A/B/X to Left/Right/Middle click while held.
 * **Hold L + Press Start (Next Disk)**: Puts the next disk of a multi-disk set into `DF0:` straight from the SD card, so only disk 1 has to be loaded from the menu. The disk number in the file name is stepped: `Game (Disk 1 of 3).adf` -> `(Disk 2 of 3)` -> `(Disk 3 of 3)` -> back to `(Disk 1 of 3)`. Also understood: `Game Disk1.adf`, `Game_Disk_1.adf`, `Game (Disk A).adf` (A -> B), and a number right before the extension (`Game-1.adf`, `Game_1.adf`). The number after the word "disk" wins over other numbers. After the last disk it goes back to disk 1. The drive is emptied for 0.4 s so the Amiga sees the disk change, and `DF0: <file name>` (or an error) is shown on screen for 3 seconds. The files must be in the same folder. Works in every control mode, including Driving.
-* **Hold L + Press Select (Multi-Disk Swapper)**: Rotates loaded floppy disks in memory (`DF0:` <- `DF1:` <- `DF2:` <- `DF3:` <- `DF0:`) with native `DSKCHANGE` pulse, allowing effortless multi-disk play (*Monkey Island*, *Xenon 2*, etc.) without touching menus.
+* **Hold L + Press Select (Multi-Disk Swapper)**: Swaps the disks in `DF0:` and `DF1:` with native `DSKCHANGE` pulse, allowing effortless multi-disk play (*Monkey Island*, *Xenon 2*, etc.) without touching menus.
 * **Press Start (Mouse Toggle)**: In the Mouse / Joystick and Mouse / CD32 port modes, Start on its own toggles the D-pad mouse.
 * **Hold L-Trigger (Shortcut Layer 1)**:
   * D-pad: `F1` (Up), `F2` (Right), `F3` (Down), `F4` (Left)
