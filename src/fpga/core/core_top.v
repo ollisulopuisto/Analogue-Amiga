@@ -599,7 +599,12 @@ wire        ide_f_led;
 //wire        ide_f_irq;
 wire  [5:0] ide_f_req;
 wire [15:0] ide_f_readdata;
-wire  [1:0] control_mode;
+wire  [1:0] control_mode_74a;   // driven by the MPU, clk_74a domain
+wire  [1:0] control_mode;       // resynchronised to clk_sys
+synch_3 #(.WIDTH(2)) control_mode_sync(control_mode_74a, control_mode, clk_sys);
+wire [31:0] CORE_OUTPUT_74a;    // driven by the MPU, clk_74a domain
+wire [31:0] CORE_OUTPUT;        // resynchronised to clk_sys
+synch_3 #(.WIDTH(32)) core_output_sync(CORE_OUTPUT_74a, CORE_OUTPUT, clk_sys);
 // control_mode:
 // JOY bits 0-10 are the joystick view (A = fire 1, B = fire 2, X, Y, L, R, Select).
 // Bits 11-13 carry raw D-pad Up, A and B so userio.v can build a CD32 pad that
@@ -743,7 +748,7 @@ sdram_ctrl ram1
 	.cpuAddr      ({sel_zram, ram_addr[24:1]}),
 	.cpuU         (ram_uds         ),
 	.cpuL         (ram_lds         ),
-	.cpustate     (cpu_state       ),
+	.cpustate     (ram_state       ),
 	.cpuCS        (ram_cs			 ),
 	.cpuRD        (ram_dout1       ),
 	.ramready     (ram_ready1      ),
@@ -803,7 +808,6 @@ fastchip fastchip
 );
 
 wire reset_mpu_l;
-wire [31:0] CORE_OUTPUT;
 wire [31:0] CORE_INPUT = {32'h0};
 wire light_enable = CORE_OUTPUT[0];
 
@@ -870,9 +874,9 @@ substitute_mcu_apf_mister substitute_mcu_apf_mister(
 		.datatable_rden         		( datatable_rden ),
 		.datatable_data         		( datatable_data ),
 		.datatable_q            		( datatable_q ),
-		.CORE_OUTPUT						( CORE_OUTPUT ),
+		.CORE_OUTPUT						( CORE_OUTPUT_74a ),
 		.CORE_INPUT							( CORE_INPUT ),
-		.control_mode						( control_mode ),
+		.control_mode						( control_mode_74a ),
 		
 		// Core interactions
 		.IO_UIO       						( io_uio ),
@@ -895,6 +899,7 @@ wire hblank_i, vblank_i, vbl, fx;
 wire  [1:0] res;
 
 wire  [1:0] 	cpu_state;
+wire  [1:0] 	ram_state;
 wire  [3:0] 	cpu_cacr;
 wire  [14:0] 	ldata, rdata;
 wire 				ce_pix;
@@ -1120,6 +1125,7 @@ cpu_wrapper cpu_wrapper
 	.ramready     (ram_ready       ),
 	.ramshared    (ramshared       ),
 	.sel_zram	  (sel_zram			 ),
+	.ramstate     (ram_state       ),
 
 	//custom CPU signals
 	.cpustate     (cpu_state       ),

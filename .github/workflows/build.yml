@@ -2,7 +2,7 @@ name: Build Amiga Core and Release
 
 on:
   push:
-    branches: [ main, feature/** ]
+    branches: [ main, feature/**, fix/**, baseline/** ]
   pull_request:
     branches: [ main ]
   workflow_dispatch:
