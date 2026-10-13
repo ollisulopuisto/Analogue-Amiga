@@ -626,7 +626,9 @@ wire joy0_fire1 = (control_mode == 2'b11) ? 1'b0 :
                    ((control_mode == 2'b10) & cont1_key_s[5]));
 wire joy0_fire2 = (control_mode == 2'b11 || control_mode == 2'b01) ? 1'b0 : cont1_key_s[5];
 
-	wire [15:0] JOY0  =  CORE_OUTPUT[4] ? 'b0 : {cont1_key_s[5], cont1_key_s[4], cont1_key_s[0],
+	// Bit 11 is the CD32 pad's Up (userio.v): the raw D-pad, plus R as gas in Driving
+	wire joy0_cd32_up = cont1_key_s[0] | ((control_mode == 2'b10) & cont1_key_s[9]);
+	wire [15:0] JOY0  =  CORE_OUTPUT[4] ? 'b0 : {cont1_key_s[5], cont1_key_s[4], joy0_cd32_up,
 								 cont1_key_s[14], cont1_key_s[9], cont1_key_s[8], cont1_key_s[7], cont1_key_s[6], 
 								 joy0_fire2,  joy0_fire1, joy0_up, joy0_down, joy0_left, joy0_right};
 	// joystick 2 [fire4,fire3,fire2,fire,up,down,left,right] (default joystick port)
