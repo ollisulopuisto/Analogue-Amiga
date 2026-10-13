@@ -102,6 +102,13 @@ end
 
 wire ramsel = cpuCS & (~&cpustate | ~cpuU | ~cpuL);
 
+// The chip bus is a clk_sys signal; the snoop used it several clk_114 cycles
+// after the RAS slot, across a clk_sys edge. Keep the copy taken in the RAS
+// slot instead, so the snoop sees exactly what was written.
+reg [22:1] snoop_adr;
+reg [15:0] snoop_dat;
+reg  [1:0] snoop_bs;
+
 // cpu cache
 wire cache_rd_ack;
 wire cache_wr_ack;
@@ -126,9 +133,9 @@ cpu_cache_new cpu_cache
 	.sdr_read_req     (cache_req),             // sdram read request from cache
 	.sdr_read_ack     (cache_fill),            // sdram read acknowledge to cache
 	.snoop_act        (chipWE),                // snoop act (write only - just update existing data in cache)
-	.snoop_adr        (chipAddr),              // snoop address
-	.snoop_dat_w      (chipWR),                // snoop write data
-	.snoop_bs         ({!chipU, !chipL})       // snoop byte selects
+	.snoop_adr        (snoop_adr),             // snoop address
+	.snoop_dat_w      (snoop_dat),             // snoop write data
+	.snoop_bs         (snoop_bs)               // snoop byte selects
 );
 
 reg cache_fill;
@@ -317,6 +324,9 @@ always @ (posedge sysclk) begin
 					cas_sd_we    <= chipRW;
 					datawr       <= chipWR;
 					chipWE       <= !chipRW;
+					snoop_adr    <= chipAddr;
+					snoop_dat    <= chipWR;
+					snoop_bs     <= {!chipU, !chipL};
 				end
 				else if(write_req) begin
 					slot_type    <= CPU_WRITECACHE;
