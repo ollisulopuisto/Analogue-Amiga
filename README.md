@@ -34,7 +34,7 @@ If you are upgrading from an earlier version of the Amiga core on Pocket with Am
 * Place your ADF and HDF images in the `/Assets/amiga/common` folder.
 * Place the Kickstart ROM (what you call BIOS on the PC) in the `/Assets/amiga/common` folder (Any original 256/512/1024kB firmware ROM will work — no encrypted ROMs yet). Currently `AmigaVision.rom` is the default ROM.
 * Make sure that the `/Assets/amiga/Mazamars312.Amiga/` folder has the `amiga_mpu_bios.bin` file — this is supplied and should already be there.
-* When changing system configurations, you **must** select the "Reset Amiga" in the menu to apply the config.
+* When changing system configurations, you **must** select the "Reset Amiga" in the menu to apply the config. The floppy speed (1x/2x) is the exception: it applies as soon as it is changed.
 * All hard drive and floppy images should be placed in the `/Assets/amiga/common` folder.
 * For custom hard drive images: In the `/Cores/Mazamars312.Amiga/` folder, the `data.json` file would need to be edited with the files names for each HDF file placed in data slots 310-313. By default, the AmigaVision images are referenced, but you can change the names to use other hard drive files. These cannot be changed on the fly due to how the HDF images work in the core. They are limited to 2TB drives. Anything larger will need different sector sizes to run.
 * If HDD3 or HDD4 are needed make sure your Kickstart has been patched to support this, or install AtapiMagic/IDEFix97. This is not a Pocket Core/MPU issue, but a limitation of AmigaOS from back in the day.
@@ -49,7 +49,7 @@ For this you are required to have the following 3 files to place in to the `/Ass
 
 The recommended settings in the menu are as follows:
 
-* **FDD/HDD LED**: `Off`
+* **Drive Indicator**: `Off`
 * **Port 1/Port 2**: `Mouse/CD32`
 * **Mouse Speed**: `10`
 * **System Config**: `AGA/PAL/Turbo`
@@ -74,8 +74,8 @@ These can also be set to these values by selecting "Reset all to Default" in the
 * **Load BIOS:** This will allow you to reload new BIOSes on the fly — will cause a reset.
 * **Load Floppy Drive 0-1:** This will allow you to load different floppies while playing.
 * **Reset Amiga:** This will reset the core, and any change in settings will be applied.
-* **FDD/HDD LED:** this places a FDD or HDD activity light on the screen. The HDD light sometimes permanently stays on, unknown why yet.
-* **Floppy Drives:** this will allow you to select how many drives are installed, and delimit the transfer rate of the Amiga core.
+* **Drive Indicator:** `LEDs` places a FDD or HDD activity light on the screen (the HDD light sometimes permanently stays on, unknown why yet). `Status Line` shows a line such as `DF0 T40 Game (Disk 1 of 3)` (drive, cylinder and disk name) while a floppy is read or written and for a second after. `LEDs + Status Line` shows both, `Off` neither.
+* **Floppy Drives:** this will allow you to select how many drives are installed, and delimit the transfer rate of the Amiga core. The 1x/2x speed applies at once; a new drive count needs "Reset Amiga".
 * **Port 1/Port 2:** This allows you to change and swap the controller ports with CD32 Gamepad (4 buttons + L1/R1), Normal Joystick (1 button) and/or Mouse — if you need to use the emulated mouse, make sure you use the Mouse/Joystick or Mouse/CD32 options.
 * **Mouse Speed:** This will change the update rate of both the emulated and real mouse movements.
 * **Screen Movement X/Y:** Moves the screen around.
@@ -89,7 +89,7 @@ These can also be set to these values by selecting "Reset all to Default" in the
 
 ## Is there a way to emulate a mouse with the D-pad while not connected to the dock?
 
-* You can toggle this with the start button — the D-pad becomes the movement, and the buttons are emulated on the left and right triggers.
+* You can toggle this with the start button (without L held; L + Start is next disk) — the D-pad becomes the movement, and the buttons are emulated on the left and right triggers.
 * Please note that you need to have the Port1/Port2 setup as Mouse/Joystick1 or Mouse/CD32 for the mouse to work.
 
 ## Is there a way to emulate a keyboard while not connected to the dock?
@@ -187,7 +187,9 @@ Principle: face buttons on their own are joystick only and never type keys, so t
 
 ### In-Game Shortcuts & Hotkeys
 * **Hold R-Trigger (Momentary Mouse)**: Instantly switches the D-pad to a high-precision mouse cursor and Face buttons A/B/X to Left/Right/Middle click while held.
+* **Hold L + Press Start (Next Disk)**: Puts the next disk of a multi-disk set into `DF0:` straight from the SD card, so only disk 1 has to be loaded from the menu. The disk number in the file name is stepped: `Game (Disk 1 of 3).adf` -> `(Disk 2 of 3)` -> `(Disk 3 of 3)` -> back to `(Disk 1 of 3)`. Also understood: `Game Disk1.adf`, `Game_Disk_1.adf`, `Game (Disk A).adf` (A -> B), and a number right before the extension (`Game-1.adf`, `Game_1.adf`). The number after the word "disk" wins over other numbers. After the last disk it goes back to disk 1. The drive is emptied for 0.4 s so the Amiga sees the disk change, and `DF0: <file name>` (or an error) is shown on screen for 3 seconds. The files must be in the same folder. Works in every control mode, including Driving.
 * **Hold L + Press Select (Multi-Disk Swapper)**: Rotates loaded floppy disks in memory (`DF0:` <- `DF1:` <- `DF2:` <- `DF3:` <- `DF0:`) with native `DSKCHANGE` pulse, allowing effortless multi-disk play (*Monkey Island*, *Xenon 2*, etc.) without touching menus.
+* **Press Start (Mouse Toggle)**: In the Mouse / Joystick and Mouse / CD32 port modes, Start on its own toggles the D-pad mouse.
 * **Hold L-Trigger (Shortcut Layer 1)**:
   * D-pad: `F1` (Up), `F2` (Right), `F3` (Down), `F4` (Left)
   * Face buttons: `Space` (A), `Return` (B), `Esc` (X), `1` (Y)
