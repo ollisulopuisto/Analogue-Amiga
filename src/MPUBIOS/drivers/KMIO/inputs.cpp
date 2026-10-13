@@ -147,7 +147,8 @@ void update_mouse_inputs (){
     // interact.json writes Control Mode to 0xf0000018 (AFP_REGISTOR(6))
     uint8_t control_mode = (AFP_REGISTOR(6) & 0x3);
     bool is_mouse_mode = (control_mode == 3);
-    bool active_mouse = mouse_enabled || r_held || is_mouse_mode;
+    // R held is a momentary mouse, except in Driving where R is the gas pedal
+    bool active_mouse = mouse_enabled || (r_held && control_mode != 2) || is_mouse_mode;
 
     if (active_mouse) {
       uint32_t tmp = CORE_OUTPUT_REGISTOR();

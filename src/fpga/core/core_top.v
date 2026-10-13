@@ -609,15 +609,15 @@ wire  [1:0] control_mode;
 //   CD32:     B = red, A = blue, Y = green, X = yellow (pad's 2x2 grid turned 45 degrees, userio.v)
 //   2'b00: Standard (D-pad Up | Face B Jump)
 //   2'b01: Platformer (Face B Jump only, D-pad Up disabled)
-//   2'b10: Driving (Trig R = Up/Gas, Trig L = Down/Brake, D-pad Up/Down disabled)
+//   2'b10: Driving (Trig R = Up/Gas, Trig L = Down/Brake, the D-pad works too)
 //   2'b11: Mouse (D-pad & A/B used for mouse, joystick disabled)
 wire joy0_up = (control_mode == 2'b11) ? 1'b0 :
-               (control_mode == 2'b10) ? cont1_key_s[9] :
+               (control_mode == 2'b10) ? (cont1_key_s[9] | cont1_key_s[0]) :
                (control_mode == 2'b01) ? cont1_key_s[5] :
                (cont1_key_s[0] | cont1_key_s[5]);
 
 wire joy0_down = (control_mode == 2'b11) ? 1'b0 :
-                 (control_mode == 2'b10) ? cont1_key_s[8] : cont1_key_s[1];
+                 (control_mode == 2'b10) ? (cont1_key_s[8] | cont1_key_s[1]) : cont1_key_s[1];
 
 wire joy0_left  = (control_mode == 2'b11) ? 1'b0 : cont1_key_s[2];
 wire joy0_right = (control_mode == 2'b11) ? 1'b0 : cont1_key_s[3];
