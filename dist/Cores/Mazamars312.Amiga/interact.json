@@ -40,6 +40,34 @@
                 ]
             },
             {
+                "name": "Picture",
+                "id": 135,
+                "type": "list",
+                "enabled": true,
+                "persist": true,
+                "address": "0xA000000C",
+                "defaultval": 0,
+                "mask": "0x00000000",
+                "options": [
+                    {
+                        "value": 0,
+                        "name": "Auto Fit"
+                    },
+                    {
+                        "value": 1,
+                        "name": "Auto Zoom"
+                    },
+                    {
+                        "value": 2,
+                        "name": "Manual Fit"
+                    },
+                    {
+                        "value": 3,
+                        "name": "Manual Zoom"
+                    }
+                ]
+            },
+            {
                 "name": "Port 1 / Port 2",
                 "id": 123,
                 "type": "list",
@@ -373,34 +401,6 @@
                     {
                         "value": "0x00CE",
                         "name": "A1200 PWM / Mix 75"
-                    }
-                ]
-            },
-            {
-                "name": "Picture",
-                "id": 135,
-                "type": "list",
-                "enabled": true,
-                "persist": true,
-                "address": "0xA000000C",
-                "defaultval": 0,
-                "mask": "0x00000000",
-                "options": [
-                    {
-                        "value": 0,
-                        "name": "Auto Fit"
-                    },
-                    {
-                        "value": 1,
-                        "name": "Auto Zoom"
-                    },
-                    {
-                        "value": 2,
-                        "name": "Manual Fit"
-                    },
-                    {
-                        "value": 3,
-                        "name": "Manual Zoom"
                     }
                 ]
             },
