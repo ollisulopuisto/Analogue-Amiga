@@ -77,6 +77,7 @@ module agnus
 	output        hblank,          // video blanking
 	output        vblank,          // video blanking
 	output        hde,             // video horizontal data enable
+	output        vdiw,            // vertical display window enable
 	output        sol,             // start of video line (active during last pixel of previous line)
 	output        sof,             // start of video frame (active during last pixel of previous frame)
 	output        vbl_int,         // vertical blanking interrupt request for Paula
@@ -337,6 +338,7 @@ agnus_bitplanedma bpd1
 	.vpos(vpos),
 	.hpos(hpos),
 	.hde(hde),
+	.vdiw(vdiw),
 	.dma(dma_bpl),
 	.reg_address_in(reg_address),
 	.reg_address_out(reg_address_bpl),

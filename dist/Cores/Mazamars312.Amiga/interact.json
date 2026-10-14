@@ -165,30 +165,46 @@
         ]
       },
       {
-        "name": "Memory: Chip",
-        "id": 129,
+        "name": "Memory: Chip / Slow",
+        "id": 134,
         "type": "list",
         "enabled": true,
         "persist": true,
         "address": "0xf0000010",
-        "defaultval": 3,
-        "mask": "0xFFFFfffc",
+        "defaultval": 5,
+        "mask": "0xFFFFfff0",
         "options": [
           {
             "value": "0x00",
-            "name": "512 kB"
+            "name": "512 kB / None"
+          },
+          {
+            "value": "0x04",
+            "name": "512 kB / 512 kB"
           },
           {
             "value": "0x01",
-            "name": "1 MB"
+            "name": "1 MB / None"
+          },
+          {
+            "value": "0x05",
+            "name": "1 MB / 512 kB"
           },
           {
             "value": "0x02",
-            "name": "1.5 MB"
+            "name": "1.5 MB / None"
           },
           {
             "value": "0x03",
-            "name": "2 MB"
+            "name": "2 MB / None"
+          },
+          {
+            "value": "0x07",
+            "name": "2 MB / 512 kB"
+          },
+          {
+            "value": "0x0F",
+            "name": "2 MB / 1.5 MB"
           }
         ]
       },
@@ -225,34 +241,6 @@
           {
             "value": "0x0050",
             "name": "32 MB"
-          }
-        ]
-      },
-      {
-        "name": "Memory: Slow",
-        "id": 130,
-        "type": "list",
-        "enabled": true,
-        "persist": true,
-        "address": "0xf0000010",
-        "defaultval": 0,
-        "mask": "0xFFFFfff3",
-        "options": [
-          {
-            "value": "0x0000",
-            "name": "None"
-          },
-          {
-            "value": "0x0004",
-            "name": "512 kB"
-          },
-          {
-            "value": "0x0008",
-            "name": "1 MB"
-          },
-          {
-            "value": "0x000c",
-            "name": "1.5 MB"
           }
         ]
       },
@@ -365,6 +353,34 @@
           {
             "value": "0x00C0",
             "name": "75 percent"
+          }
+        ]
+      },
+      {
+        "name": "Picture",
+        "id": 135,
+        "type": "list",
+        "enabled": true,
+        "persist": true,
+        "address": "0xA000000C",
+        "defaultval": 0,
+        "mask": "0x00000000",
+        "options": [
+          {
+            "value": 0,
+            "name": "Auto Fit"
+          },
+          {
+            "value": 1,
+            "name": "Auto Zoom"
+          },
+          {
+            "value": 2,
+            "name": "Manual Fit"
+          },
+          {
+            "value": 3,
+            "name": "Manual Zoom"
           }
         ]
       },

@@ -242,6 +242,8 @@ module minimig
 	output  [2:0] scanline,
 	output 	     ce_pix,
 	output  [1:0] res,
+	output        diw_h,       // horizontal display window (Agnus hde, pixel aligned)
+	output        diw_v,       // vertical display window (Agnus vdiwena)
 
 	//audio
 	output [14:0] ldata,       // left DAC data
@@ -364,6 +366,7 @@ wire        _wprot;				//disk is write-protected
 wire  [1:0] blver;
 wire        hbl, hde;
 assign      hblank = blver ? ~hde : hbl;
+assign      diw_h  = hde;
 
 wire        IO_WAIT_PAULA, IO_WAIT_OSD;
 wire [15:0] IO_DOUT_PAULA;
@@ -453,6 +456,7 @@ agnus AGNUS1
 	._vsync(_vsync),
 	._csync(_csync),
 	.hde(hde),
+	.vdiw(diw_v),
 	.field1(field1),
 	.lace(lace),
 	.hblank(hbl),

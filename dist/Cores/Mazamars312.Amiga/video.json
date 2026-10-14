@@ -3,66 +3,66 @@
         "magic": "APF_VER_1",
         "scaler_modes": [
             {
-                "width": 640,
-                "height": 220,
-                "aspect_w": 160,
-                "aspect_h": 110,
+                "width": 704,
+                "height": 240,
+                "aspect_w": 44,
+                "aspect_h": 35,
                 "rotation": 0,
                 "mirror": 0
             },
             {
-                "width": 640,
-                "height": 220,
-                "aspect_w": 160,
-                "aspect_h": 110,
+                "width": 512,
+                "height": 200,
+                "aspect_w": 192,
+                "aspect_h": 175,
                 "rotation": 0,
                 "mirror": 0
             },
             {
-                "width": 640,
-                "height": 270,
-                "aspect_w": 160,
-                "aspect_h": 135,
+                "width": 704,
+                "height": 288,
+                "aspect_w": 275,
+                "aspect_h": 216,
                 "rotation": 0,
                 "mirror": 0
             },
             {
-                "width": 640,
-                "height": 270,
-                "aspect_w": 160,
-                "aspect_h": 135,
+                "width": 512,
+                "height": 240,
+                "aspect_w": 10,
+                "aspect_h": 9,
                 "rotation": 0,
                 "mirror": 0
             },
             {
-                "width": 640,
-                "height": 440,
-                "aspect_w": 160,
-                "aspect_h": 110,
+                "width": 704,
+                "height": 480,
+                "aspect_w": 44,
+                "aspect_h": 35,
                 "rotation": 0,
                 "mirror": 0
             },
             {
-                "width": 640,
-                "height": 440,
-                "aspect_w": 160,
-                "aspect_h": 110,
+                "width": 512,
+                "height": 400,
+                "aspect_w": 192,
+                "aspect_h": 175,
                 "rotation": 0,
                 "mirror": 0
             },
             {
-                "width": 640,
-                "height": 540,
-                "aspect_w": 160,
-                "aspect_h": 135,
+                "width": 704,
+                "height": 576,
+                "aspect_w": 275,
+                "aspect_h": 216,
                 "rotation": 0,
                 "mirror": 0
             },
             {
-                "width": 640,
-                "height": 540,
-                "aspect_w": 160,
-                "aspect_h": 135,
+                "width": 512,
+                "height": 480,
+                "aspect_w": 10,
+                "aspect_h": 9,
                 "rotation": 0,
                 "mirror": 0
             }

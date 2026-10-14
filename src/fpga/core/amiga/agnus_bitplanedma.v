@@ -39,6 +39,7 @@ module agnus_bitplanedma (
   input  wire [ 11-1:0] vpos,             // vertical position counter
   input  wire [  9-1:0] hpos,             // agnus internal horizontal position counter (advanced by 4 CCK)
   output reg            hde,              // video data enable (horizontal)
+  output wire           vdiw,             // vertical display window enable (for picture auto-centre)
   output wire           dma,              // true if bitplane dma engine uses it's cycle
   input  wire [  9-1:1] reg_address_in,   // register address inputs
   output reg  [  9-1:1] reg_address_out,  // register address outputs
@@ -99,6 +100,7 @@ reg  [ 1: 0] dmaena_delayed;      // delayed bitplane dma enable signal (compati
 reg  [10: 0] vdiwstrt;            // vertical display window start position
 reg  [10: 0] vdiwstop;            // vertical display window stop position
 reg          vdiwena;             // vertical display window enable
+assign vdiw = vdiwena;
 
 reg    [8:0] hdiwstrt;
 reg    [8:0] hdiwstop;

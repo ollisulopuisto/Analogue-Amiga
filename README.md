@@ -54,8 +54,8 @@ The recommended settings in the menu are as follows:
 * **Mouse Speed**: `10`
 * **System Config**: `AGA/PAL/Turbo`
 * **CPU Type:** `68020 CPU — No Cache`
-* **Memory: Chip**: `2MB`
-* **Memory: Slow**: `None`
+* **Memory: Chip / Slow**: `2 MB / None`
+* **Picture**: `Auto Fit`
 * **Memory: Fast**: `32MB`
 * **Audio Filter**: `A500/PWM`
 * **Audio Mix**: `50%`
@@ -78,11 +78,11 @@ These can also be set to these values by selecting "Reset all to Default" in the
 * **Floppy Drives:** this will allow you to select how many drives are installed, and delimit the transfer rate of the Amiga core. The 1x/2x speed applies at once; a new drive count needs "Reset Amiga".
 * **Port 1/Port 2:** This allows you to change and swap the controller ports with CD32 Gamepad (4 buttons + L1/R1), Normal Joystick (1 button) and/or Mouse — if you need to use the emulated mouse, make sure you use the Mouse/Joystick or Mouse/CD32 options.
 * **Mouse Speed:** This will change the update rate of both the emulated and real mouse movements.
-* **Screen Movement X/Y:** Moves the screen around.
+* **Picture:** `Auto Fit` shows the whole picture (overscan included) and centres it on the game's display window by itself. `Auto Zoom` crops the sides and a few lines top and bottom so the picture fills the Pocket's screen (6 screen rows per Amiga line on PAL). `Manual Fit` / `Manual Zoom` use the Screen X/Y-Position values instead.
+* **Screen X/Y-Position:** Moves the screen around in the Manual picture modes.
 * **System Config:** Allows you to select PAL/NTSC refresh, ECS (Amiga 500/600/2000) hardware or newer AGA (Advanced Graphics Architecture) hardware, Turbo Boot or standard boot modes.
 * **CPU Type:** Allows you which type of CPU you want installed 68000, 68010, 68020 with no cache, 68020 with cache.
-* **Memory: Chip:** Size of the Chip memory.
-* **Memory: Slow:** Size of the Slow memory. Typically never used, Fast Memory is… faster.
+* **Memory: Chip / Slow:** Size of the Chip and Slow memory. Slow memory is typically never used, Fast Memory is… faster.
 * **Memory: Fast:** On the 68000 and 68010 CPU this can be None/2/4/8MB, on the 68020 this can also be 16 or 32.
 * **Audio Filter:** There are 4 options — A500 or A1200 filters with or without PWM.
 * **Audio Mixer:** This will mix the left and right audio streams together. This defaults to 50%.
