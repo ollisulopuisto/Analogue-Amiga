@@ -55,7 +55,7 @@ The recommended settings in the menu are as follows:
 * **System Config**: `AGA/PAL/Turbo`
 * **CPU Type:** `68020 CPU — No Cache`
 * **Memory: Chip / Slow**: `2 MB / None`
-* **Picture**: `Fit`
+* **Aspect / Crop**: `Correct` / `None (overscan)`
 * **Memory: Fast**: `32MB`
 * **Audio Filter**: `A500/PWM`
 * **Audio Mix**: `50%`
@@ -78,8 +78,8 @@ These can also be set to these values by selecting "Reset all to Default" in the
 * **Floppy Drives:** this will allow you to select how many drives are installed, and delimit the transfer rate of the Amiga core. The 1x/2x speed applies at once; a new drive count needs "Reset Amiga".
 * **Port 1/Port 2:** This allows you to change and swap the controller ports with CD32 Gamepad (4 buttons + L1/R1), Normal Joystick (1 button) and/or Mouse — if you need to use the emulated mouse, make sure you use the Mouse/Joystick or Mouse/CD32 options.
 * **Mouse Speed:** This will change the update rate of both the emulated and real mouse movements.
-* **Picture:** all modes centre the picture on the game's display window by themselves (it settles about half a second after a screen change). `Fit` shows every pixel with the correct aspect ratio (bars top and bottom). `Fill` crops the edges so the picture fills the Pocket's screen; how much is cut is set with **Fill Crop**. `Stretch` shows every pixel and stretches it to fill the screen (aspect ratio ignored). Interlaced screens are shown one field at a time.
-* **Fill Crop:** how much `Fill` cuts, in Amiga lores pixels. `320x256 (no crop)` shows exactly the standard PAL screen, full width with bars top and bottom; `296x256` cuts 12 pixels each side; `272x256 (fills)` cuts 24 pixels each side, keeps all 256 lines and fills the screen; `256x240 (6x lines)` cuts 32 pixels each side and 8 lines top and bottom, each Amiga line exactly 6 screen rows. NTSC has one Fill size (284x220), and Stretch on NTSC is the same as Fit.
+* **Aspect:** `Correct` keeps the Amiga's picture shape; `Stretch` stretches the picture to fill the Pocket's screen. The picture is always centred on the game's display window by itself (it settles about half a second after a screen change). Interlaced screens are shown one field at a time.
+* **Crop:** `None (overscan)` shows every pixel, overscan included. `320x256` shows exactly the standard PAL screen. `272x256` cuts 24 lores pixels each side and fills the screen with all 256 lines. `256x240` cuts 32 pixels each side and 8 lines top and bottom (each Amiga line is exactly 6 screen rows). The last two fill the screen with either Aspect. NTSC has no Stretch and one crop size for any Crop choice.
 * **System Config:** Allows you to select PAL/NTSC refresh, ECS (Amiga 500/600/2000) hardware or newer AGA (Advanced Graphics Architecture) hardware, Turbo Boot or standard boot modes.
 * **CPU Type:** Allows you which type of CPU you want installed 68000, 68010, 68020 with no cache, 68020 with cache.
 * **Memory: Chip / Slow:** Size of the Chip and Slow memory. Slow memory is typically never used, Fast Memory is… faster.

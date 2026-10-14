@@ -15,11 +15,11 @@
 
 	   slot  mode           width x lines   aspect
 	   0     NTSC Fit       704 x 240       44:35   (pixel aspect 6:7; also Stretch)
-	   1     NTSC Fill      568 x 220       ~10:9
+	   1     NTSC Fill      568 x 220       ~10:9   (any Crop)
 	   2     PAL Fit        704 x 288       275:216 (pixel aspect 25:24)
 	   3     PAL Stretch    704 x 288       10:9
 	   4     PAL Fill 0     640 x 256       the standard 320x256 lores screen
-	   5     PAL Fill 1     592 x 256       296x256 lores
+	   5     PAL Stretch    640 x 256       320x256 lores, 10:9
 	   6     PAL Fill 2     544 x 256       272x256 lores, ~10:9
 	   7     PAL Fill 3     512 x 240       256x240 lores, 10:9, 6 rows per line
 
@@ -94,8 +94,8 @@ reg 				video_de_reg_i;
 // ---------------------------------------------------------------------------
 // Menu registers (clk_74a)
 // ---------------------------------------------------------------------------
-reg [1:0] pic_mode = 2'd0;          // 0 = Fit, 1 = Fill, 2 = Stretch
-reg [1:0] fill_crop = 2'd2;         // Fill crop level 0..3
+reg [1:0] pic_mode = 2'd0;          // Aspect: 0 = Correct, 1 = Stretch
+reg [1:0] fill_crop = 2'd0;         // Crop: 0 = none, 1 = 320x256, 2 = 272x256, 3 = 256x240
 wire [1:0] pic_mode_s;
 wire [1:0] fill_crop_s;
 reg [31:0] vga_bridge_rd_data_reg;
@@ -237,7 +237,7 @@ always @(posedge video_rgb_clock) begin
 		3'd2,
 		3'd3:    begin w_half <= 10'd704; h_lines <= 9'd288; end
 		3'd4:    begin w_half <= 10'd640; h_lines <= 9'd256; end
-		3'd5:    begin w_half <= 10'd592; h_lines <= 9'd256; end
+		3'd5:    begin w_half <= 10'd640; h_lines <= 9'd256; end
 		3'd6:    begin w_half <= 10'd544; h_lines <= 9'd256; end
 		3'd7:    begin w_half <= 10'd512; h_lines <= 9'd240; end
 		default: begin w_half <= 10'd704; h_lines <= 9'd240; end
@@ -317,11 +317,14 @@ always @(posedge video_rgb_clock) begin
 		ye <= y_start + h_lines;
 		mode_pal    <= res[1];
 		if (res[1])
-			mode_slot <= (pic_mode_s == 2'd2) ? 3'd3 :
-			             (pic_mode_s == 2'd1) ? {1'b1, fill_crop_s} :
-			             3'd2;
+			case (fill_crop_s)
+				2'd0:    mode_slot <= pic_mode_s[0] ? 3'd3 : 3'd2;
+				2'd1:    mode_slot <= pic_mode_s[0] ? 3'd5 : 3'd4;
+				2'd2:    mode_slot <= 3'd6;
+				default: mode_slot <= 3'd7;
+			endcase
 		else
-			mode_slot <= (pic_mode_s == 2'd1) ? 3'd1 : 3'd0;   // NTSC Stretch = Fit
+			mode_slot <= (fill_crop_s == 2'd0) ? 3'd0 : 3'd1;   // NTSC: no Stretch slot
 
 		video_rgb_reg 	<= 24'd0;   // frame feature bits: progressive (interlaced fields are shown one by one)
 	end

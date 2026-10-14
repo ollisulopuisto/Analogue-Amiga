@@ -40,8 +40,8 @@
         ]
       },
       {
-        "name": "Picture",
-        "id": 135,
+        "name": "Aspect",
+        "id": 139,
         "type": "list",
         "enabled": true,
         "persist": true,
@@ -51,43 +51,39 @@
         "options": [
           {
             "value": 0,
-            "name": "Fit"
+            "name": "Correct"
           },
           {
             "value": 1,
-            "name": "Fill"
-          },
-          {
-            "value": 2,
             "name": "Stretch"
           }
         ]
       },
       {
-        "name": "Fill Crop",
-        "id": 138,
+        "name": "Crop",
+        "id": 140,
         "type": "list",
         "enabled": true,
         "persist": true,
         "address": "0xA0000010",
-        "defaultval": 2,
+        "defaultval": 0,
         "mask": "0x00000000",
         "options": [
           {
             "value": 0,
-            "name": "320x256 (no crop)"
+            "name": "None (overscan)"
           },
           {
             "value": 1,
-            "name": "296x256"
+            "name": "320x256"
           },
           {
             "value": 2,
-            "name": "272x256 (fills)"
+            "name": "272x256"
           },
           {
             "value": 3,
-            "name": "256x240 (6x lines)"
+            "name": "256x240"
           }
         ]
       },
