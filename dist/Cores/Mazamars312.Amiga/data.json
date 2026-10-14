@@ -16,6 +16,19 @@
                 "address": "0x00000000"
             },
             {
+                "name": "Floppy Drive 1",
+                "id": "321",
+                "required": false,
+                "deferload": true,
+                "parameters": 1,
+                "extensions": [
+                    "adf"
+                ],
+                "size_exact": 0,
+                "size_maximum": 1572864,
+                "address": "0x00000000"
+            },
+            {
                 "name": "MPU Bios",
                 "id": "200",
                 "required": true,
@@ -82,19 +95,6 @@
                     "hdf"
                 ],
                 "filename": "HDD-4.hdf"
-            },
-            {
-                "name": "Floppy Drive 1",
-                "id": "321",
-                "required": false,
-                "deferload": true,
-                "parameters": 1,
-                "extensions": [
-                    "adf"
-                ],
-                "size_exact": 0,
-                "size_maximum": 1572864,
-                "address": "0x00000000"
             }
         ]
     }
