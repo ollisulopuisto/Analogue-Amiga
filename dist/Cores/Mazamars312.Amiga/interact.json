@@ -1,423 +1,443 @@
 {
-  "interact": {
-    "magic": "APF_VER_1",
-    "variables": [
-      {
-        "name": "Reset Amiga",
-        "id": 120,
-        "type": "action",
-        "enabled": true,
-        "address": "0xf0000000",
-        "value": 1,
-        "mask": "0xFFFFFFFE"
-      },
-      {
-        "name": "Control Mode",
-        "id": 160,
-        "type": "list",
-        "enabled": true,
-        "address": "0xf0000018",
-        "writeonly": true,
-        "persist": true,
-        "defaultval": 0,
-        "options": [
-          {
-            "value": 0,
-            "name": "Standard: D-pad / B"
-          },
-          {
-            "value": 1,
-            "name": "Platformer: Btn B Jump"
-          },
-          {
-            "value": 2,
-            "name": "Driving: L Brake R Gas"
-          },
-          {
-            "value": 3,
-            "name": "Mouse: D-pad / Clicks"
-          }
+    "interact": {
+        "magic": "APF_VER_1",
+        "variables": [
+            {
+                "name": "Reset Amiga",
+                "id": 120,
+                "type": "action",
+                "enabled": true,
+                "address": "0xf0000000",
+                "value": 1,
+                "mask": "0xFFFFFFFE"
+            },
+            {
+                "name": "Control Mode",
+                "id": 160,
+                "type": "list",
+                "enabled": true,
+                "address": "0xf0000018",
+                "writeonly": true,
+                "persist": true,
+                "defaultval": 0,
+                "options": [
+                    {
+                        "value": 0,
+                        "name": "Standard: D-pad / B"
+                    },
+                    {
+                        "value": 1,
+                        "name": "Platformer: Btn B Jump"
+                    },
+                    {
+                        "value": 2,
+                        "name": "Driving: L Brake R Gas"
+                    },
+                    {
+                        "value": 3,
+                        "name": "Mouse: D-pad / Clicks"
+                    }
+                ]
+            },
+            {
+                "name": "Port 1 / Port 2",
+                "id": 123,
+                "type": "list",
+                "enabled": true,
+                "persist": true,
+                "address": "0xf0000014",
+                "defaultval": 5,
+                "mask": "0x0FFFFFFF",
+                "options": [
+                    {
+                        "value": "0x0000",
+                        "name": "Joystick 1 / Joy 2"
+                    },
+                    {
+                        "value": "0x40000000",
+                        "name": "Joystick 2 / Joy 1"
+                    },
+                    {
+                        "value": "0x80000000",
+                        "name": "Mouse / Joystick"
+                    },
+                    {
+                        "value": "0x20000000",
+                        "name": "CD32 1 / CD32 2"
+                    },
+                    {
+                        "value": "0x30000000",
+                        "name": "CD32 2 / CD32 1"
+                    },
+                    {
+                        "value": "0xa0000000",
+                        "name": "Mouse / CD32"
+                    }
+                ]
+            },
+            {
+                "name": "Mouse Speed",
+                "id": 124,
+                "type": "slider_u32",
+                "defaultval": "10",
+                "enabled": true,
+                "persist": true,
+                "address": "0xf0000014",
+                "mask": "0xFFFFFF00",
+                "graphical": {
+                    "signed": false,
+                    "min": 1,
+                    "max": 32,
+                    "adjust_small": 1,
+                    "adjust_large": 1
+                }
+            },
+            {
+                "name": "System Configuration",
+                "id": 127,
+                "type": "list",
+                "enabled": true,
+                "persist": true,
+                "address": "0xf0000008",
+                "defaultval": 6,
+                "mask": "0xFFFFFFEC",
+                "options": [
+                    {
+                        "value": "0x0000",
+                        "name": "ECS PAL Std"
+                    },
+                    {
+                        "value": "0x0002",
+                        "name": "ECS NTSC Std"
+                    },
+                    {
+                        "value": "0x0001",
+                        "name": "ECS PAL Turbo"
+                    },
+                    {
+                        "value": "0x0003",
+                        "name": "ECS NTSC Turbo"
+                    },
+                    {
+                        "value": "0x0010",
+                        "name": "AGA PAL Std"
+                    },
+                    {
+                        "value": "0x0012",
+                        "name": "AGA NTSC Std"
+                    },
+                    {
+                        "value": "0x0011",
+                        "name": "AGA PAL Turbo"
+                    },
+                    {
+                        "value": "0x0013",
+                        "name": "AGA NTSC Turbo"
+                    }
+                ]
+            },
+            {
+                "name": "CPU Type",
+                "id": 128,
+                "type": "list",
+                "enabled": true,
+                "persist": true,
+                "address": "0xf000000c",
+                "defaultval": 3,
+                "mask": "0xFFFFfff8",
+                "options": [
+                    {
+                        "value": "0x0000",
+                        "name": "68000 CPU"
+                    },
+                    {
+                        "value": "0x0001",
+                        "name": "68010 CPU"
+                    },
+                    {
+                        "value": "0x0003",
+                        "name": "68020 No Cache"
+                    },
+                    {
+                        "value": "0x0007",
+                        "name": "68020 Cache"
+                    }
+                ]
+            },
+            {
+                "name": "Memory: Chip / Slow",
+                "id": 134,
+                "type": "list",
+                "enabled": true,
+                "persist": true,
+                "address": "0xf0000010",
+                "defaultval": 5,
+                "mask": "0xFFFFfff0",
+                "options": [
+                    {
+                        "value": "0x00",
+                        "name": "512 kB / None"
+                    },
+                    {
+                        "value": "0x04",
+                        "name": "512 kB / 512 kB"
+                    },
+                    {
+                        "value": "0x01",
+                        "name": "1 MB / None"
+                    },
+                    {
+                        "value": "0x05",
+                        "name": "1 MB / 512 kB"
+                    },
+                    {
+                        "value": "0x02",
+                        "name": "1.5 MB / None"
+                    },
+                    {
+                        "value": "0x03",
+                        "name": "2 MB / None"
+                    },
+                    {
+                        "value": "0x07",
+                        "name": "2 MB / 512 kB"
+                    },
+                    {
+                        "value": "0x0F",
+                        "name": "2 MB / 1.5 MB"
+                    }
+                ]
+            },
+            {
+                "name": "Memory: Fast",
+                "id": 131,
+                "type": "list",
+                "enabled": true,
+                "persist": true,
+                "address": "0xf0000010",
+                "defaultval": 5,
+                "mask": "0xFFFFff8f",
+                "options": [
+                    {
+                        "value": "0x0000",
+                        "name": "None"
+                    },
+                    {
+                        "value": "0x0010",
+                        "name": "2 MB"
+                    },
+                    {
+                        "value": "0x0020",
+                        "name": "4 MB"
+                    },
+                    {
+                        "value": "0x0030",
+                        "name": "8 MB"
+                    },
+                    {
+                        "value": "0x0040",
+                        "name": "16 MB"
+                    },
+                    {
+                        "value": "0x0050",
+                        "name": "32 MB"
+                    }
+                ]
+            },
+            {
+                "name": "Floppy Drives",
+                "id": 122,
+                "type": "list",
+                "enabled": true,
+                "persist": true,
+                "address": "0xf0000004",
+                "defaultval": 3,
+                "mask": "0xFFFFFFF0",
+                "options": [
+                    {
+                        "value": "0x00000000",
+                        "name": "1 Drive 1x Speed"
+                    },
+                    {
+                        "value": "0x00000001",
+                        "name": "1 Drive 2x Speed"
+                    },
+                    {
+                        "value": "0x00000004",
+                        "name": "2 Drives 1x Speed"
+                    },
+                    {
+                        "value": "0x00000005",
+                        "name": "2 Drives 2x Speed"
+                    }
+                ]
+            },
+            {
+                "name": "Drive Indicator",
+                "id": 121,
+                "type": "list",
+                "enabled": true,
+                "persist": true,
+                "address": "0xf000001C",
+                "defaultval": 0,
+                "mask": "0xFFFFFEFE",
+                "options": [
+                    {
+                        "value": "0x0000",
+                        "name": "LEDs"
+                    },
+                    {
+                        "value": "0x0101",
+                        "name": "Status Line"
+                    },
+                    {
+                        "value": "0x0100",
+                        "name": "LEDs + Status Line"
+                    },
+                    {
+                        "value": "0x0001",
+                        "name": "Off"
+                    }
+                ]
+            },
+            {
+                "name": "Audio: Filter / Mix",
+                "id": 136,
+                "type": "list",
+                "enabled": true,
+                "persist": true,
+                "address": "0xf000001C",
+                "defaultval": 6,
+                "mask": "0xFFFFFF31",
+                "options": [
+                    {
+                        "value": "0x0002",
+                        "name": "A500 / Mono"
+                    },
+                    {
+                        "value": "0x0042",
+                        "name": "A500 / Mix 25"
+                    },
+                    {
+                        "value": "0x0082",
+                        "name": "A500 / Mix 50"
+                    },
+                    {
+                        "value": "0x00C2",
+                        "name": "A500 / Mix 75"
+                    },
+                    {
+                        "value": "0x000A",
+                        "name": "A500 PWM / Mono"
+                    },
+                    {
+                        "value": "0x004A",
+                        "name": "A500 PWM / Mix 25"
+                    },
+                    {
+                        "value": "0x008A",
+                        "name": "A500 PWM / Mix 50"
+                    },
+                    {
+                        "value": "0x00CA",
+                        "name": "A500 PWM / Mix 75"
+                    },
+                    {
+                        "value": "0x0006",
+                        "name": "A1200 / Mono"
+                    },
+                    {
+                        "value": "0x0046",
+                        "name": "A1200 / Mix 25"
+                    },
+                    {
+                        "value": "0x0086",
+                        "name": "A1200 / Mix 50"
+                    },
+                    {
+                        "value": "0x00C6",
+                        "name": "A1200 / Mix 75"
+                    },
+                    {
+                        "value": "0x000E",
+                        "name": "A1200 PWM / Mono"
+                    },
+                    {
+                        "value": "0x004E",
+                        "name": "A1200 PWM / Mix 25"
+                    },
+                    {
+                        "value": "0x008E",
+                        "name": "A1200 PWM / Mix 50"
+                    },
+                    {
+                        "value": "0x00CE",
+                        "name": "A1200 PWM / Mix 75"
+                    }
+                ]
+            },
+            {
+                "name": "Picture",
+                "id": 135,
+                "type": "list",
+                "enabled": true,
+                "persist": true,
+                "address": "0xA000000C",
+                "defaultval": 0,
+                "mask": "0x00000000",
+                "options": [
+                    {
+                        "value": 0,
+                        "name": "Auto Fit"
+                    },
+                    {
+                        "value": 1,
+                        "name": "Auto Zoom"
+                    },
+                    {
+                        "value": 2,
+                        "name": "Manual Fit"
+                    },
+                    {
+                        "value": 3,
+                        "name": "Manual Zoom"
+                    }
+                ]
+            },
+            {
+                "name": "Screen X-Position",
+                "id": 125,
+                "type": "slider_u32",
+                "enabled": true,
+                "defaultval": "80",
+                "persist": true,
+                "address": "0xA0000000",
+                "mask": "0x00000000",
+                "graphical": {
+                    "signed": false,
+                    "min": 0,
+                    "max": 300,
+                    "adjust_small": 1,
+                    "adjust_large": 2
+                }
+            },
+            {
+                "name": "Screen Y-Position",
+                "id": 126,
+                "type": "slider_u32",
+                "enabled": true,
+                "persist": true,
+                "defaultval": "40",
+                "address": "0xA0000004",
+                "mask": "0x00000000",
+                "graphical": {
+                    "signed": false,
+                    "min": 0,
+                    "max": 300,
+                    "adjust_small": 1,
+                    "adjust_large": 1
+                }
+            }
         ]
-      },
-      {
-        "name": "Port 1 / Port 2",
-        "id": 123,
-        "type": "list",
-        "enabled": true,
-        "persist": true,
-        "address": "0xf0000014",
-        "defaultval": 5,
-        "mask": "0x0FFFFFFF",
-        "options": [
-          {
-            "value": "0x0000",
-            "name": "Joystick 1 / Joy 2"
-          },
-          {
-            "value": "0x40000000",
-            "name": "Joystick 2 / Joy 1"
-          },
-          {
-            "value": "0x80000000",
-            "name": "Mouse / Joystick"
-          },
-          {
-            "value": "0x20000000",
-            "name": "CD32 1 / CD32 2"
-          },
-          {
-            "value": "0x30000000",
-            "name": "CD32 2 / CD32 1"
-          },
-          {
-            "value": "0xa0000000",
-            "name": "Mouse / CD32"
-          }
-        ]
-      },
-      {
-        "name": "Mouse Speed",
-        "id": 124,
-        "type": "slider_u32",
-        "defaultval": "10",
-        "enabled": true,
-        "persist": true,
-        "address": "0xf0000014",
-        "mask": "0xFFFFFF00",
-        "graphical": {
-          "signed": false,
-          "min": 1,
-          "max": 32,
-          "adjust_small": 1,
-          "adjust_large": 1
-        }
-      },
-      {
-        "name": "System Configuration",
-        "id": 127,
-        "type": "list",
-        "enabled": true,
-        "persist": true,
-        "address": "0xf0000008",
-        "defaultval": 6,
-        "mask": "0xFFFFFFEC",
-        "options": [
-          {
-            "value": "0x0000",
-            "name": "ECS PAL Std"
-          },
-          {
-            "value": "0x0002",
-            "name": "ECS NTSC Std"
-          },
-          {
-            "value": "0x0001",
-            "name": "ECS PAL Turbo"
-          },
-          {
-            "value": "0x0003",
-            "name": "ECS NTSC Turbo"
-          },
-          {
-            "value": "0x0010",
-            "name": "AGA PAL Std"
-          },
-          {
-            "value": "0x0012",
-            "name": "AGA NTSC Std"
-          },
-          {
-            "value": "0x0011",
-            "name": "AGA PAL Turbo"
-          },
-          {
-            "value": "0x0013",
-            "name": "AGA NTSC Turbo"
-          }
-        ]
-      },
-      {
-        "name": "CPU Type",
-        "id": 128,
-        "type": "list",
-        "enabled": true,
-        "persist": true,
-        "address": "0xf000000c",
-        "defaultval": 3,
-        "mask": "0xFFFFfff8",
-        "options": [
-          {
-            "value": "0x0000",
-            "name": "68000 CPU"
-          },
-          {
-            "value": "0x0001",
-            "name": "68010 CPU"
-          },
-          {
-            "value": "0x0003",
-            "name": "68020 No Cache"
-          },
-          {
-            "value": "0x0007",
-            "name": "68020 Cache"
-          }
-        ]
-      },
-      {
-        "name": "Memory: Chip / Slow",
-        "id": 134,
-        "type": "list",
-        "enabled": true,
-        "persist": true,
-        "address": "0xf0000010",
-        "defaultval": 5,
-        "mask": "0xFFFFfff0",
-        "options": [
-          {
-            "value": "0x00",
-            "name": "512 kB / None"
-          },
-          {
-            "value": "0x04",
-            "name": "512 kB / 512 kB"
-          },
-          {
-            "value": "0x01",
-            "name": "1 MB / None"
-          },
-          {
-            "value": "0x05",
-            "name": "1 MB / 512 kB"
-          },
-          {
-            "value": "0x02",
-            "name": "1.5 MB / None"
-          },
-          {
-            "value": "0x03",
-            "name": "2 MB / None"
-          },
-          {
-            "value": "0x07",
-            "name": "2 MB / 512 kB"
-          },
-          {
-            "value": "0x0F",
-            "name": "2 MB / 1.5 MB"
-          }
-        ]
-      },
-      {
-        "name": "Memory: Fast",
-        "id": 131,
-        "type": "list",
-        "enabled": true,
-        "persist": true,
-        "address": "0xf0000010",
-        "defaultval": 5,
-        "mask": "0xFFFFff8f",
-        "options": [
-          {
-            "value": "0x0000",
-            "name": "None"
-          },
-          {
-            "value": "0x0010",
-            "name": "2 MB"
-          },
-          {
-            "value": "0x0020",
-            "name": "4 MB"
-          },
-          {
-            "value": "0x0030",
-            "name": "8 MB"
-          },
-          {
-            "value": "0x0040",
-            "name": "16 MB"
-          },
-          {
-            "value": "0x0050",
-            "name": "32 MB"
-          }
-        ]
-      },
-      {
-        "name": "Floppy Drives",
-        "id": 122,
-        "type": "list",
-        "enabled": true,
-        "persist": true,
-        "address": "0xf0000004",
-        "defaultval": 3,
-        "mask": "0xFFFFFFF0",
-        "options": [
-          {
-            "value": "0x00000000",
-            "name": "1 Drive 1x Speed"
-          },
-          {
-            "value": "0x00000001",
-            "name": "1 Drive 2x Speed"
-          },
-          {
-            "value": "0x00000004",
-            "name": "2 Drives 1x Speed"
-          },
-          {
-            "value": "0x00000005",
-            "name": "2 Drives 2x Speed"
-          }
-        ]
-      },
-      {
-        "name": "Drive Indicator",
-        "id": 121,
-        "type": "list",
-        "enabled": true,
-        "persist": true,
-        "address": "0xf000001C",
-        "defaultval": 0,
-        "mask": "0xFFFFFEFE",
-        "options": [
-          {
-            "value": "0x0000",
-            "name": "LEDs"
-          },
-          {
-            "value": "0x0101",
-            "name": "Status Line"
-          },
-          {
-            "value": "0x0100",
-            "name": "LEDs + Status Line"
-          },
-          {
-            "value": "0x0001",
-            "name": "Off"
-          }
-        ]
-      },
-      {
-        "name": "Audio Filter",
-        "id": 132,
-        "type": "list",
-        "enabled": true,
-        "persist": true,
-        "address": "0xf000001C",
-        "defaultval": 1,
-        "mask": "0xFFFFFFF1",
-        "options": [
-          {
-            "value": "0x0002",
-            "name": "A500 / No PWM"
-          },
-          {
-            "value": "0x000A",
-            "name": "A500 / PWM"
-          },
-          {
-            "value": "0x0006",
-            "name": "A1200 / No PWM"
-          },
-          {
-            "value": "0x000E",
-            "name": "A1200 / PWM"
-          }
-        ]
-      },
-      {
-        "name": "Audio Mix",
-        "id": 133,
-        "type": "list",
-        "enabled": true,
-        "persist": true,
-        "address": "0xf000001C",
-        "defaultval": 2,
-        "mask": "0xFFFFFF3F",
-        "options": [
-          {
-            "value": "0x0000",
-            "name": "Mono"
-          },
-          {
-            "value": "0x0040",
-            "name": "25 percent"
-          },
-          {
-            "value": "0x0080",
-            "name": "50 percent"
-          },
-          {
-            "value": "0x00C0",
-            "name": "75 percent"
-          }
-        ]
-      },
-      {
-        "name": "Picture",
-        "id": 135,
-        "type": "list",
-        "enabled": true,
-        "persist": true,
-        "address": "0xA000000C",
-        "defaultval": 0,
-        "mask": "0x00000000",
-        "options": [
-          {
-            "value": 0,
-            "name": "Auto Fit"
-          },
-          {
-            "value": 1,
-            "name": "Auto Zoom"
-          },
-          {
-            "value": 2,
-            "name": "Manual Fit"
-          },
-          {
-            "value": 3,
-            "name": "Manual Zoom"
-          }
-        ]
-      },
-      {
-        "name": "Screen X-Position",
-        "id": 125,
-        "type": "slider_u32",
-        "enabled": true,
-        "defaultval": "80",
-        "persist": true,
-        "address": "0xA0000000",
-        "mask": "0x00000000",
-        "graphical": {
-          "signed": false,
-          "min": 0,
-          "max": 300,
-          "adjust_small": 1,
-          "adjust_large": 2
-        }
-      },
-      {
-        "name": "Screen Y-Position",
-        "id": 126,
-        "type": "slider_u32",
-        "enabled": true,
-        "persist": true,
-        "defaultval": "40",
-        "address": "0xA0000004",
-        "mask": "0x00000000",
-        "graphical": {
-          "signed": false,
-          "min": 0,
-          "max": 300,
-          "adjust_small": 1,
-          "adjust_large": 1
-        }
-      }
-    ]
-  }
+    }
 }
