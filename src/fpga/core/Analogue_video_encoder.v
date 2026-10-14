@@ -14,14 +14,14 @@
 	one field high.
 
 	   slot  mode           width x lines   aspect
-	   0     NTSC Fit       704 x 240       44:35   (pixel aspect 6:7)
-	   1     NTSC Stretch   704 x 240       10:9
-	   2     NTSC Fill      568 x 220       ~10:9
-	   3     PAL Fit        704 x 288       275:216 (pixel aspect 25:24)
-	   4     PAL Stretch    704 x 288       10:9
-	   5     PAL Fill 1     608 x 288       ~10:9 (5 rows per line)
-	   6     PAL Fill 2     560 x 264       ~10:9
-	   7     PAL Fill 3     512 x 240       10:9  (6 rows per line)
+	   0     NTSC Fit       704 x 240       44:35   (pixel aspect 6:7; also Stretch)
+	   1     NTSC Fill      568 x 220       ~10:9
+	   2     PAL Fit        704 x 288       275:216 (pixel aspect 25:24)
+	   3     PAL Stretch    704 x 288       10:9
+	   4     PAL Fill 0     640 x 256       the standard 320x256 lores screen
+	   5     PAL Fill 1     592 x 256       296x256 lores
+	   6     PAL Fill 2     544 x 256       272x256 lores, ~10:9
+	   7     PAL Fill 3     512 x 240       256x240 lores, 10:9, 6 rows per line
 
 	One hires pixel is two video clocks (DE high every clock, SKIP on every
 	other one), so the DE window is 2*width clocks long.
@@ -95,7 +95,7 @@ reg 				video_de_reg_i;
 // Menu registers (clk_74a)
 // ---------------------------------------------------------------------------
 reg [1:0] pic_mode = 2'd0;          // 0 = Fit, 1 = Fill, 2 = Stretch
-reg [1:0] fill_crop = 2'd2;         // Fill crop level 1..3
+reg [1:0] fill_crop = 2'd2;         // Fill crop level 0..3
 wire [1:0] pic_mode_s;
 wire [1:0] fill_crop_s;
 reg [31:0] vga_bridge_rd_data_reg;
@@ -213,7 +213,7 @@ end
 // Window position (registered pipeline, latched at vsync)
 // ---------------------------------------------------------------------------
 reg        mode_pal = 1'b1;
-reg [2:0]  mode_slot = 3'd3;                   // slot of the window being sent
+reg [2:0]  mode_slot = 3'd2;                   // slot of the window being sent
 reg [10:0] w_clks;                             // 2 * width
 reg [9:0]  w_half;                             // width in hires px = half window in clocks
 reg [8:0]  h_lines;                            // lines per field
@@ -233,11 +233,12 @@ wire [9:0]  c_cy = a_valid ? a_cy : (mode_pal ? 10'd339 : 10'd283);
 
 always @(posedge video_rgb_clock) begin
 	case (mode_slot)
-		3'd2:    begin w_half <= 10'd568; h_lines <= 9'd220; end
-		3'd3,
-		3'd4:    begin w_half <= 10'd704; h_lines <= 9'd288; end
-		3'd5:    begin w_half <= 10'd608; h_lines <= 9'd288; end
-		3'd6:    begin w_half <= 10'd560; h_lines <= 9'd264; end
+		3'd1:    begin w_half <= 10'd568; h_lines <= 9'd220; end
+		3'd2,
+		3'd3:    begin w_half <= 10'd704; h_lines <= 9'd288; end
+		3'd4:    begin w_half <= 10'd640; h_lines <= 9'd256; end
+		3'd5:    begin w_half <= 10'd592; h_lines <= 9'd256; end
+		3'd6:    begin w_half <= 10'd544; h_lines <= 9'd256; end
 		3'd7:    begin w_half <= 10'd512; h_lines <= 9'd240; end
 		default: begin w_half <= 10'd704; h_lines <= 9'd240; end
 	endcase
@@ -316,11 +317,11 @@ always @(posedge video_rgb_clock) begin
 		ye <= y_start + h_lines;
 		mode_pal    <= res[1];
 		if (res[1])
-			mode_slot <= (pic_mode_s == 2'd2) ? 3'd4 :
-			             (pic_mode_s == 2'd1) ? ((fill_crop_s <= 2'd1) ? 3'd5 : (fill_crop_s == 2'd2) ? 3'd6 : 3'd7) :
-			             3'd3;
+			mode_slot <= (pic_mode_s == 2'd2) ? 3'd3 :
+			             (pic_mode_s == 2'd1) ? {1'b1, fill_crop_s} :
+			             3'd2;
 		else
-			mode_slot <= (pic_mode_s == 2'd2) ? 3'd1 : (pic_mode_s == 2'd1) ? 3'd2 : 3'd0;
+			mode_slot <= (pic_mode_s == 2'd1) ? 3'd1 : 3'd0;   // NTSC Stretch = Fit
 
 		video_rgb_reg 	<= 24'd0;   // frame feature bits: progressive (interlaced fields are shown one by one)
 	end
