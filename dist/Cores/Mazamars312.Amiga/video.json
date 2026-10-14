@@ -10,7 +10,7 @@
                 "rotation": 0,
                 "mirror": 0
             },
-			{
+            {
                 "width": 640,
                 "height": 220,
                 "aspect_w": 160,
@@ -18,7 +18,7 @@
                 "rotation": 0,
                 "mirror": 0
             },
-			{
+            {
                 "width": 640,
                 "height": 270,
                 "aspect_w": 160,
@@ -26,7 +26,7 @@
                 "rotation": 0,
                 "mirror": 0
             },
-			{
+            {
                 "width": 640,
                 "height": 270,
                 "aspect_w": 160,
@@ -34,7 +34,7 @@
                 "rotation": 0,
                 "mirror": 0
             },
-			{
+            {
                 "width": 640,
                 "height": 440,
                 "aspect_w": 160,
@@ -42,7 +42,7 @@
                 "rotation": 0,
                 "mirror": 0
             },
-			{
+            {
                 "width": 640,
                 "height": 440,
                 "aspect_w": 160,
@@ -50,7 +50,7 @@
                 "rotation": 0,
                 "mirror": 0
             },
-			{
+            {
                 "width": 640,
                 "height": 540,
                 "aspect_w": 160,
@@ -58,13 +58,63 @@
                 "rotation": 0,
                 "mirror": 0
             },
-			{
+            {
                 "width": 640,
                 "height": 540,
                 "aspect_w": 160,
                 "aspect_h": 135,
                 "rotation": 0,
                 "mirror": 0
+            }
+        ],
+        "display_modes": [
+            {
+                "id": "0x10"
+            },
+            {
+                "id": "0x20"
+            },
+            {
+                "id": "0x30"
+            },
+            {
+                "id": "0x31"
+            },
+            {
+                "id": "0x32"
+            },
+            {
+                "id": "0x40"
+            },
+            {
+                "id": "0x41"
+            },
+            {
+                "id": "0x42"
+            },
+            {
+                "id": "0x51"
+            },
+            {
+                "id": "0x52"
+            },
+            {
+                "id": "0x62"
+            },
+            {
+                "id": "0x63"
+            },
+            {
+                "id": "0x71"
+            },
+            {
+                "id": "0x81"
+            },
+            {
+                "id": "0xE0"
+            },
+            {
+                "id": "0xE1"
             }
         ]
     }
