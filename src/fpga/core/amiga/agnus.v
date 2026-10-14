@@ -78,6 +78,7 @@ module agnus
 	output        vblank,          // video blanking
 	output        hde,             // video horizontal data enable
 	output        vdiw,            // vertical display window enable
+	output        bpl_dma,         // bitplane DMA cycle (lines that really show bitplanes)
 	output        sol,             // start of video line (active during last pixel of previous line)
 	output        sof,             // start of video frame (active during last pixel of previous frame)
 	output        vbl_int,         // vertical blanking interrupt request for Paula
@@ -320,6 +321,7 @@ agnus_audiodma aud1
 //--------------------------------------------------------------------------------------
 
 wire        dma_bpl;         //bitplane dma engine uses it's slot
+assign      bpl_dma = dma_bpl;
 wire [20:1] address_bpl;     //bitplane dma engine chip address out
 wire  [8:1] reg_address_bpl; //bitplane dma engine register address out
 

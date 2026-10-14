@@ -897,7 +897,7 @@ wire [7:0] red, green, blue, r,g,b;
 wire lace, field1;
 wire hblank_i, vblank_i, vbl, fx;
 wire  [1:0] res;
-wire        diw_h, diw_v;
+wire        diw_h, diw_v, diw_dma;
 
 wire  [1:0] 	cpu_state;
 wire  [1:0] 	ram_state;
@@ -994,6 +994,7 @@ minimig minimig
 	.res          				(res              ),
 	.diw_h        				(diw_h            ),
 	.diw_v        				(diw_v            ),
+	.diw_dma      				(diw_dma          ),
 
 	//audio
 	.ldata        				(ldata            ), // left DAC data
@@ -1174,6 +1175,7 @@ Analogue_video_encoder Analogue_video_encoder(
 	.ce_pix							( ce_pix						),	
 	.diw_h							( diw_h						),
 	.diw_v							( diw_v						),
+	.diw_dma							( diw_dma					),
 	.LED								( LED							),
 	.light_enable					( light_enable				),
 	.ide_c_led						( ide_c_led					), 

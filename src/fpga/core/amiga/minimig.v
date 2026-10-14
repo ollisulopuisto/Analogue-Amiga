@@ -244,6 +244,7 @@ module minimig
 	output  [1:0] res,
 	output        diw_h,       // horizontal display window (Agnus hde, pixel aligned)
 	output        diw_v,       // vertical display window (Agnus vdiwena)
+	output        diw_dma,     // bitplane DMA cycle
 
 	//audio
 	output [14:0] ldata,       // left DAC data
@@ -457,6 +458,7 @@ agnus AGNUS1
 	._csync(_csync),
 	.hde(hde),
 	.vdiw(diw_v),
+	.bpl_dma(diw_dma),
 	.field1(field1),
 	.lace(lace),
 	.hblank(hbl),

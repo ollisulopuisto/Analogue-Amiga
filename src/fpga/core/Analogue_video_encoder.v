@@ -27,7 +27,10 @@
 	other one), so the DE window is 2*width clocks long.
 
 	Position: the window is centred on the Amiga display window (Agnus DIW:
-	hde = horizontal window of the frame, vdiwena = vertical window),
+	hde = horizontal window of the frame; vertically the lines that have
+	bitplane DMA inside vdiwena, because graphics.library leaves DIWSTOP at
+	the bottom of the View and turns the bitplanes off below a screen with
+	the copper, so on Workbench vdiwena alone runs to the end of the frame),
 	measured every frame. A new position is only taken once the measurement
 	has been identical for AUTO_STABLE frames and differs from the one in use
 	by more than one lores pixel / one line, so the picture does not jump.
@@ -60,6 +63,7 @@ module Analogue_video_encoder(
 	input 					clk7n_en,
 	input 					diw_h,
 	input 					diw_v,
+	input 					diw_dma,
 
 
 	input 	 				LED,
@@ -135,7 +139,8 @@ wire hb_fall  = ~hblank_i && hblank_i_reg;
 // ---------------------------------------------------------------------------
 // Display window measurement (Agnus DIW)
 // ---------------------------------------------------------------------------
-reg [2:0] diw_h_sr, diw_v_sr;
+reg [2:0] diw_h_sr, diw_v_sr, diw_dma_sr;
+reg       line_dma = 1'b0;
 wire diw_h_s  = diw_h_sr[1];
 wire diw_h_p  = diw_h_sr[2];
 wire diw_v_s  = diw_v_sr[1];
@@ -150,6 +155,7 @@ reg [9:0]  m_cy;        // first + last line (twice the centre)
 always @(posedge video_rgb_clock) begin
 	diw_h_sr <= {diw_h_sr[1:0], diw_h};
 	diw_v_sr <= {diw_v_sr[1:0], diw_v};
+	diw_dma_sr <= {diw_dma_sr[1:0], diw_dma};
 	meas_tick <= 1'b0;
 
 	if (hb_fall) xr_line <= 11'd0;
@@ -162,10 +168,16 @@ always @(posedge video_rgb_clock) begin
 		end
 	end
 
-	if (hb_fall && diw_v_s) begin
-		if (~v_seen) y_first <= yc;
-		y_last <= yc;
-		v_seen <= 1'b1;
+	// a line counts when it had bitplane DMA inside the vertical window;
+	// decided at the next hsync, before yc moves on
+	if (diw_dma_sr[1] && diw_v_s) line_dma <= 1'b1;
+	if (hs_fall) begin
+		line_dma <= 1'b0;
+		if (line_dma) begin
+			if (~v_seen) y_first <= yc;
+			y_last <= yc;
+			v_seen <= 1'b1;
+		end
 	end
 
 	if (vs_fall) begin
