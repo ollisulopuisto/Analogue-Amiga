@@ -124,3 +124,14 @@ jobs:
             src/fpga/output_files/*.sta.summary
             src/fpga/output_files/*.sta.rpt
             src/fpga/output_files/timing_*.rpt
+
+      - name: Timing gate (all corners, setup/hold/recovery/removal)
+        run: |
+          # Fail the run when any clock has negative slack in any corner;
+          # the artifacts above are still uploaded for inspection.
+          awk '/^Type/ {t=$0} /^Slack/ {print $3 "\t" t}' src/fpga/output_files/ap_core.sta.summary | sort -n > slacks.txt
+          head -n 5 slacks.txt
+          if awk -F'\t' '$1 < 0 {bad=1} END {exit !bad}' slacks.txt; then
+            echo "::error::Timing not met (negative slack above)"
+            exit 1
+          fi
