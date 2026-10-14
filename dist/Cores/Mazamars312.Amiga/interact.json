@@ -353,78 +353,58 @@
         ]
       },
       {
-        "name": "Audio: Filter / Mix",
-        "id": 136,
+        "name": "Audio Filter",
+        "id": 132,
         "type": "list",
         "enabled": true,
         "persist": true,
         "address": "0xf000001C",
-        "defaultval": 6,
-        "mask": "0xFFFFFF31",
+        "defaultval": 1,
+        "mask": "0xFFFFFFF1",
         "options": [
           {
             "value": "0x0002",
-            "name": "A500 / Mono"
-          },
-          {
-            "value": "0x0042",
-            "name": "A500 / Mix 25"
-          },
-          {
-            "value": "0x0082",
-            "name": "A500 / Mix 50"
-          },
-          {
-            "value": "0x00C2",
-            "name": "A500 / Mix 75"
+            "name": "A500 / No PWM"
           },
           {
             "value": "0x000A",
-            "name": "A500 PWM / Mono"
-          },
-          {
-            "value": "0x004A",
-            "name": "A500 PWM / Mix 25"
-          },
-          {
-            "value": "0x008A",
-            "name": "A500 PWM / Mix 50"
-          },
-          {
-            "value": "0x00CA",
-            "name": "A500 PWM / Mix 75"
+            "name": "A500 / PWM"
           },
           {
             "value": "0x0006",
-            "name": "A1200 / Mono"
-          },
-          {
-            "value": "0x0046",
-            "name": "A1200 / Mix 25"
-          },
-          {
-            "value": "0x0086",
-            "name": "A1200 / Mix 50"
-          },
-          {
-            "value": "0x00C6",
-            "name": "A1200 / Mix 75"
+            "name": "A1200 / No PWM"
           },
           {
             "value": "0x000E",
-            "name": "A1200 PWM / Mono"
+            "name": "A1200 / PWM"
+          }
+        ]
+      },
+      {
+        "name": "Audio Mix",
+        "id": 133,
+        "type": "list",
+        "enabled": true,
+        "persist": true,
+        "address": "0xf000001C",
+        "defaultval": 2,
+        "mask": "0xFFFFFF3F",
+        "options": [
+          {
+            "value": "0x0000",
+            "name": "Mono"
           },
           {
-            "value": "0x004E",
-            "name": "A1200 PWM / Mix 25"
+            "value": "0x0040",
+            "name": "25 percent"
           },
           {
-            "value": "0x008E",
-            "name": "A1200 PWM / Mix 50"
+            "value": "0x0080",
+            "name": "50 percent"
           },
           {
-            "value": "0x00CE",
-            "name": "A1200 PWM / Mix 75"
+            "value": "0x00C0",
+            "name": "75 percent"
           }
         ]
       }
