@@ -242,6 +242,20 @@ void minimig_fdd_watch(){
   if ((int)(now - next_check) < 0) return;
   next_check = now + 500;
 
+  // A disk that is in DF0 shortly after start (given at launch by an instance
+  // JSON, from Recents, or inserted from the menu) does not boot by itself: the
+  // Amiga is already at the insert-disk screen or started before the drive
+  // reported the disk. Reset once, as the menu's Reset Amiga does.
+  static bool launch_reset_done;
+  static uint32_t first_call;
+  if (!first_call) first_call = now ? now : 1;
+  uint32_t up = now - first_call; // ms since the first call (main loop start)
+  if (!launch_reset_done && up > 4000 && up < 90000 && (df[0].status & DSK_INSERTED)) {
+    launch_reset_done = true;
+    AFP_REGISTOR(0) = 1;
+    mainprintf("Floppy watch: reset to boot the disk in DF0\r\n");
+  }
+
   bool inserted = false;
   for (int i = 0; i < 2; i++) {
     if (df[i].status & DSK_INSERTED) continue;
@@ -253,15 +267,6 @@ void minimig_fdd_watch(){
     mainprintf("Floppy watch: inserted DF%d (%d bytes)\r\n", i, size);
     if (df0_was_empty && (df[0].status & DSK_INSERTED)) {
       minimig_detect_game_profile();
-      // A game launched from Recents/Library: the disk arrives after the Amiga
-      // has started and is sitting at the insert-disk screen, where it does not
-      // boot a disk inserted later. Reset once (same as Reset Amiga in the menu).
-      static bool launch_reset_done;
-      if (!launch_reset_done && now < 90000) {
-        launch_reset_done = true;
-        AFP_REGISTOR(0) = 1;
-        mainprintf("Floppy watch: reset to boot the launched disk\r\n");
-      }
     }
     inserted = true;
   }
