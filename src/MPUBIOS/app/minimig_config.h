@@ -54,6 +54,7 @@ extern "C" {
 void minimig_restart_first();
 void minimig_restart_running_core();
 void minimig_fdd_update();
+void minimig_fdd_watch();
 void minimig_fdd_swap_disks();
 void minimig_fdd_next_disk();
 void minimig_fdd_status_note(uint8_t drive, uint8_t track);

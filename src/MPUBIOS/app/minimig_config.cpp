@@ -232,6 +232,30 @@ void minimig_fdd_update(){
   }
 }
 
+// A disk given at launch (Recents) or by a data slot update that was folded into
+// another one (the host reports only the last updated slot) is not in the drive:
+// look for slots that have a file but an empty drive, twice a second, and insert
+// those only. Drives that already hold a disk are left alone.
+void minimig_fdd_watch(){
+  static uint32_t next_check;
+  uint32_t now = GetMilliseconds();
+  if ((int)(now - next_check) < 0) return;
+  next_check = now + 500;
+  bool inserted = false;
+  for (int i = 0; i < 2; i++) {
+    if (df[i].status & DSK_INSERTED) continue;
+    uint32_t size = dataslot_size(i + DATASLOT_FDD_BASE);
+    if (size == 0 || (size % (512 * 11)) != 0 || size > (MAX_TRACKS * 512 * 11 * 2)) continue;
+    bool df0_was_empty = (i == 0);
+    InsertFloppy(&df[i], size, i + DATASLOT_FDD_BASE);
+    UpdateDriveStatus_fdd();
+    mainprintf("Floppy watch: inserted DF%d (%d bytes)\r\n", i, size);
+    if (df0_was_empty && (df[0].status & DSK_INSERTED)) minimig_detect_game_profile();
+    inserted = true;
+  }
+  (void)inserted;
+}
+
 // Swap the disks in DF0 and DF1 (the core has two floppy drives)
 void minimig_fdd_swap_disks(){
   if (!(df[0].status & DSK_INSERTED) && !(df[1].status & DSK_INSERTED)) {
