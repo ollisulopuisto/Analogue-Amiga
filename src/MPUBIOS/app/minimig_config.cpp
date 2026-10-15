@@ -241,6 +241,21 @@ void minimig_fdd_watch(){
   uint32_t now = GetMilliseconds();
   if ((int)(now - next_check) < 0) return;
   next_check = now + 500;
+
+  // Debug: once, 6 s after start, show the data slot sizes (DF0 DF1 IDE0 HD)
+  static bool shown;
+  if (!shown && now > 6000) {
+    shown = true;
+    char msg[32];
+    int o = disk_name_append(msg, 0, sizeof(msg), "F0:");
+    o = disk_name_append_uint(msg, o, sizeof(msg), dataslot_size(DATASLOT_FDD_BASE) / 1024, 1);
+    o = disk_name_append(msg, o, sizeof(msg), "k F1:");
+    o = disk_name_append_uint(msg, o, sizeof(msg), dataslot_size(DATASLOT_FDD_BASE + 1) / 1024, 1);
+    o = disk_name_append(msg, o, sizeof(msg), "k H0:");
+    o = disk_name_append_uint(msg, o, sizeof(msg), dataslot_size(DATASLOT_HDD_BASE) / 1048576, 1);
+    disk_name_append(msg, o, sizeof(msg), "M");
+    osd_popup_show(msg, 6000, OSD_POPUP_MESSAGE);
+  }
   bool inserted = false;
   for (int i = 0; i < 2; i++) {
     if (df[i].status & DSK_INSERTED) continue;
