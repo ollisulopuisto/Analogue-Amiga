@@ -3,6 +3,17 @@
         "magic": "APF_VER_1",
         "data_slots": [
             {
+                "name": "Amiga Game",
+                "id": 0,
+                "required": true,
+                "parameters": "0x113",
+                "extensions": [
+                    "json"
+                ],
+                "address": "",
+                "nonvolatile": false
+            },
+            {
                 "name": "Floppy Drive 0",
                 "id": "320",
                 "required": false,
