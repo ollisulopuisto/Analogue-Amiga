@@ -207,6 +207,11 @@ static void fdd_set_slot_name(uint32_t dataslot, const char *path) {
   fdd_slot_name_state[i] = FDD_NAME_KNOWN;
 }
 
+// Set by main() when the main loop starts. While the core is running a disk
+// change must be visible to trackdisk.device, which polls about once a second:
+// like WinUAE (2 s) the drive reports "no disk" for 2.5 s before the new disk.
+bool minimig_running;
+
 void minimig_fdd_update(){
   bool df0_was_empty = (df[0].status == 0);
   for (int n = 0; n < 4; n++) fdd_slot_name_state[n] = FDD_NAME_UNKNOWN;
@@ -216,7 +221,7 @@ void minimig_fdd_update(){
     uint32_t size = dataslot_size(i + DATASLOT_FDD_BASE);
     if (size != 0){
       UnsertFloppy(&df[i]);
-      riscusleep(400000);
+      riscusleep(minimig_running ? 2500000 : 400000);
       InsertFloppy(&df[i], size, i + DATASLOT_FDD_BASE);
     }
     i++;
@@ -242,18 +247,18 @@ void minimig_fdd_watch(){
   if ((int)(now - next_check) < 0) return;
   next_check = now + 500;
 
-  // A disk that is in DF0 shortly after start (given at launch by an instance
-  // JSON, from Recents, or inserted from the menu) does not boot by itself: the
-  // Amiga is already at the insert-disk screen or started before the drive
-  // reported the disk. Reset once, as the menu's Reset Amiga does.
-  static bool launch_reset_done;
-  static uint32_t first_call;
-  if (!first_call) first_call = now ? now : 1;
-  uint32_t up = now - first_call; // ms since the first call (main loop start)
-  if (!launch_reset_done && up > 4000 && up < 90000 && (df[0].status & DSK_INSERTED)) {
-    launch_reset_done = true;
-    AFP_REGISTOR(0) = 1;
-    mainprintf("Floppy watch: reset to boot the disk in DF0\r\n");
+  // A disk given at launch (instance JSON / Recents) arrives after the Amiga is
+  // running and does not boot by itself, because trackdisk never saw the drive
+  // empty->full change. Do what WinUAE does: report "no disk" for 2.5 s, then
+  // present the disk. Non-blocking: a pending insert is completed here.
+  static uint32_t present_at;
+  if (present_at) {
+    if ((int)(now - present_at) >= 0) {
+      present_at = 0;
+      UpdateDriveStatus_fdd();
+      mainprintf("Floppy watch: disk presented\r\n");
+    }
+    return;
   }
 
   bool inserted = false;
@@ -261,16 +266,17 @@ void minimig_fdd_watch(){
     if (df[i].status & DSK_INSERTED) continue;
     uint32_t size = dataslot_size(i + DATASLOT_FDD_BASE);
     if (size == 0 || (size % (512 * 11)) != 0 || size > (MAX_TRACKS * 512 * 11 * 2)) continue;
-    bool df0_was_empty = (i == 0);
     InsertFloppy(&df[i], size, i + DATASLOT_FDD_BASE);
-    UpdateDriveStatus_fdd();
     mainprintf("Floppy watch: inserted DF%d (%d bytes)\r\n", i, size);
-    if (df0_was_empty && (df[0].status & DSK_INSERTED)) {
-      minimig_detect_game_profile();
-    }
     inserted = true;
   }
-  (void)inserted;
+  if (inserted) {
+    // the drive keeps reporting "no disk" until present_at
+    RemoveDriveStatus();
+    present_at = now + 2500;
+    if (!present_at) present_at = 1;
+    if (df[0].status & DSK_INSERTED) minimig_detect_game_profile();
+  }
 }
 
 // Swap the disks in DF0 and DF1 (the core has two floppy drives)

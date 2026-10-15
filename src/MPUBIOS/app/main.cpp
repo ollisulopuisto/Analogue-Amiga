@@ -74,6 +74,7 @@ void mainloop()
 	// This loop is what keeps the checking of the core interface
   mainprintf("about to go in baby\r\n");
 	core_reset(0); // Turns off all the resets via the HPS bus
+	minimig_running = true;
 
   while(true){
 
