@@ -242,20 +242,6 @@ void minimig_fdd_watch(){
   if ((int)(now - next_check) < 0) return;
   next_check = now + 500;
 
-  // Debug: once, 6 s after start, show the data slot sizes (DF0 DF1 IDE0 HD)
-  static bool shown;
-  if (!shown && now > 6000) {
-    shown = true;
-    char msg[32];
-    int o = disk_name_append(msg, 0, sizeof(msg), "F0:");
-    o = disk_name_append_uint(msg, o, sizeof(msg), dataslot_size(DATASLOT_FDD_BASE) / 1024, 1);
-    o = disk_name_append(msg, o, sizeof(msg), "k F1:");
-    o = disk_name_append_uint(msg, o, sizeof(msg), dataslot_size(DATASLOT_FDD_BASE + 1) / 1024, 1);
-    o = disk_name_append(msg, o, sizeof(msg), "k H0:");
-    o = disk_name_append_uint(msg, o, sizeof(msg), dataslot_size(DATASLOT_HDD_BASE) / 1048576, 1);
-    disk_name_append(msg, o, sizeof(msg), "M");
-    osd_popup_show(msg, 6000, OSD_POPUP_MESSAGE);
-  }
   bool inserted = false;
   for (int i = 0; i < 2; i++) {
     if (df[i].status & DSK_INSERTED) continue;
@@ -265,7 +251,18 @@ void minimig_fdd_watch(){
     InsertFloppy(&df[i], size, i + DATASLOT_FDD_BASE);
     UpdateDriveStatus_fdd();
     mainprintf("Floppy watch: inserted DF%d (%d bytes)\r\n", i, size);
-    if (df0_was_empty && (df[0].status & DSK_INSERTED)) minimig_detect_game_profile();
+    if (df0_was_empty && (df[0].status & DSK_INSERTED)) {
+      minimig_detect_game_profile();
+      // A game launched from Recents/Library: the disk arrives after the Amiga
+      // has started and is sitting at the insert-disk screen, where it does not
+      // boot a disk inserted later. Reset once (same as Reset Amiga in the menu).
+      static bool launch_reset_done;
+      if (!launch_reset_done && now < 90000) {
+        launch_reset_done = true;
+        AFP_REGISTOR(0) = 1;
+        mainprintf("Floppy watch: reset to boot the launched disk\r\n");
+      }
+    }
     inserted = true;
   }
   (void)inserted;
