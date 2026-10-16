@@ -241,6 +241,8 @@ void minimig_fdd_update(){
 // another one (the host reports only the last updated slot) is not in the drive:
 // look for slots that have a file but an empty drive, twice a second, and insert
 // those only. Drives that already hold a disk are left alone.
+static volatile uint32_t df0_track_reads;
+
 void minimig_fdd_watch(){
   static uint32_t next_check;
   uint32_t now = GetMilliseconds();
@@ -252,13 +254,30 @@ void minimig_fdd_watch(){
   // empty->full change. Do what WinUAE does: report "no disk" for 2.5 s, then
   // present the disk. Non-blocking: a pending insert is completed here.
   static uint32_t present_at;
+  static uint32_t boot_check_at;   // when to look whether the Amiga read the disk
+  static uint32_t reads_at_present;
+  static bool fallback_done;
   if (present_at) {
     if ((int)(now - present_at) >= 0) {
       present_at = 0;
       UpdateDriveStatus_fdd();
       mainprintf("Floppy watch: disk presented\r\n");
+      reads_at_present = df0_track_reads;
+      boot_check_at = now + 8000;
+      if (!boot_check_at) boot_check_at = 1;
     }
     return;
+  }
+  // The Amiga still has not read DF0 8 s after it was presented (it sits at the
+  // insert-disk screen): reset once, which presents the disk after a clean
+  // 3 s "no disk" phase, as Reset Amiga does.
+  if (boot_check_at && (int)(now - boot_check_at) >= 0) {
+    boot_check_at = 0;
+    if (!fallback_done && (df[0].status & DSK_INSERTED) && df0_track_reads == reads_at_present) {
+      fallback_done = true;
+      AFP_REGISTOR(0) = 1;
+      mainprintf("Floppy watch: disk not read, resetting the Amiga\r\n");
+    }
   }
 
   bool inserted = false;
@@ -382,6 +401,7 @@ static uint8_t fdd_status_drive;
 static uint8_t fdd_status_track;
 
 void minimig_fdd_status_note(uint8_t drive, uint8_t track){
+  if ((drive & 0x3) == 0) df0_track_reads++;
   fdd_status_drive = drive & 0x3;
   fdd_status_track = track;
   fdd_status_pending = 1;
