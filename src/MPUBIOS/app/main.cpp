@@ -75,6 +75,12 @@ void mainloop()
   mainprintf("about to go in baby\r\n");
 	core_reset(0); // Turns off all the resets via the HPS bus
 	minimig_running = true;
+	// paula_floppy clears its "disk present" bits while the core is in reset, and the
+	// disk status the MPU sent in restart_first() was sent during that reset: a disk
+	// that was already in a data slot at start is lost to the Amiga (insert-disk screen)
+	// until the status is sent again. Send it now that the reset is off.
+	riscusleep(20000);
+	UpdateDriveStatus_fdd();
 
   while(true){
 
