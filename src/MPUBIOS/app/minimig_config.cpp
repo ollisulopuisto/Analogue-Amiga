@@ -254,30 +254,36 @@ void minimig_fdd_watch(){
   // empty->full change. Do what WinUAE does: report "no disk" for 2.5 s, then
   // present the disk. Non-blocking: a pending insert is completed here.
   static uint32_t present_at;
-  static uint32_t boot_check_at;   // when to look whether the Amiga read the disk
-  static uint32_t reads_at_present;
+  static uint32_t df0_since;      // when DF0 was first seen holding a disk
   static bool fallback_done;
+  static uint32_t first_call;
+  if (!first_call) first_call = now ? now : 1;
+  uint32_t up = now - first_call;  // ms since the main loop started
+
   if (present_at) {
     if ((int)(now - present_at) >= 0) {
       present_at = 0;
       UpdateDriveStatus_fdd();
       mainprintf("Floppy watch: disk presented\r\n");
-      reads_at_present = df0_track_reads;
-      boot_check_at = now + 8000;
-      if (!boot_check_at) boot_check_at = 1;
+      df0_since = now ? now : 1;
     }
     return;
   }
-  // The Amiga still has not read DF0 8 s after it was presented (it sits at the
-  // insert-disk screen): reset once, which presents the disk after a clean
-  // 3 s "no disk" phase, as Reset Amiga does.
-  if (boot_check_at && (int)(now - boot_check_at) >= 0) {
-    boot_check_at = 0;
-    if (!fallback_done && (df[0].status & DSK_INSERTED) && df0_track_reads == reads_at_present) {
+
+  // First disk after power-up (launch from the pocket menu / Recents / a disk
+  // attached right after start): if the Amiga has still not read a single track
+  // from DF0 10 s after the disk was there, it is stuck at the insert-disk
+  // screen. Reset once; the reset presents the disk after a clean 3 s "no disk"
+  // phase, which is known to boot it. Only in the first 2 minutes, only once.
+  if (df[0].status & DSK_INSERTED) {
+    if (!df0_since) df0_since = now ? now : 1;
+    if (!fallback_done && up < 120000 && df0_track_reads == 0 && (int)(now - (df0_since + 10000)) >= 0) {
       fallback_done = true;
       AFP_REGISTOR(0) = 1;
       mainprintf("Floppy watch: disk not read, resetting the Amiga\r\n");
     }
+  } else {
+    df0_since = 0;
   }
 
   bool inserted = false;
