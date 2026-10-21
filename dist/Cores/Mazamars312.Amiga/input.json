@@ -7,22 +7,22 @@
               "mappings": [
                     {
                         "id": 0,
-                        "name": "Fire 1",
+                        "name": "Fire 1 / L Click / CD32 Blue",
                         "key": "pad_btn_a"
                     },
                     {
                         "id": 1,
-                        "name": "Fire 2 / Jump",
+                        "name": "Fire 2 Jump / R Click / CD32 Red",
                         "key": "pad_btn_b"
                     },
                     {
                         "id": 2,
-                        "name": "Fire 1",
+                        "name": "Fire 1 / M Click / CD32 Yellow",
                         "key": "pad_btn_x"
                     },
                     {
                         "id": 3,
-                        "name": "Fire 1",
+                        "name": "Fire 1 / CD32 Green",
                         "key": "pad_btn_y"
                     },
                     {
