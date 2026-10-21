@@ -7,22 +7,22 @@
               "mappings": [
                     {
                         "id": 0,
-                        "name": "Fire1/LClk/Blue",
+                        "name": "Fire/L Click/Blue",
                         "key": "pad_btn_a"
                     },
                     {
                         "id": 1,
-                        "name": "Fire2/Jump/RClk/Red",
+                        "name": "Jump/R Click/Red",
                         "key": "pad_btn_b"
                     },
                     {
                         "id": 2,
-                        "name": "Fire1/MClk/Yellow",
+                        "name": "Fire/M Click/Yellow",
                         "key": "pad_btn_x"
                     },
                     {
                         "id": 3,
-                        "name": "Fire1/Green",
+                        "name": "Fire/Green",
                         "key": "pad_btn_y"
                     },
                     {
