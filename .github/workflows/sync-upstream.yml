@@ -1,0 +1,119 @@
+name: Sync Upstream
+
+on:
+  schedule:
+    - cron: '0 0 * * *' # Run daily at 00:00 UTC
+  workflow_dispatch: # Allow manual trigger from GitHub Actions UI
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  sync:
+    name: Sync with Upstream
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          # GITHUB_TOKEN is a GitHub App token, and App tokens may not create or
+          # update anything under .github/workflows/. Upstream syncs routinely
+          # carry workflow changes -- and the conflict path below resets onto
+          # upstream/main, which brings in upstream's ci.yml wholesale -- so
+          # pushing with it is rejected outright ("refusing to allow a GitHub App
+          # to create or update workflow `.github/workflows/ci.yml` without
+          # `workflows` permission") and the run dies having opened no PR, the
+          # exact outcome the conflict handling exists to avoid. The permissions
+          # block cannot help: there is no `workflows:` key for it. Only a PAT
+          # carrying the workflow scope can push these, and SYNC_TOKEN is that
+          # PAT. The fallback keeps syncs that touch no workflow file working
+          # while the secret is unset.
+          token: ${{ secrets.SYNC_TOKEN || secrets.GITHUB_TOKEN }}
+
+      - name: Configure Git Author
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Fetch upstream and check for updates
+        id: check
+        run: |
+          set -euo pipefail
+          git remote add upstream https://github.com/Mazamars312/Analogue-Amiga.git || git remote set-url upstream https://github.com/Mazamars312/Analogue-Amiga.git
+          git fetch upstream main
+          if git merge-base --is-ancestor upstream/main main; then
+            echo "Upstream is already merged into main."
+            echo "has_updates=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "New updates found in upstream."
+            echo "has_updates=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      # A conflicting upstream commit must not turn the daily run red with no PR
+      # to act on: merge when it applies cleanly, otherwise push upstream/main
+      # itself and let the PR carry the conflict for a human to resolve.
+      - name: Prepare sync branch
+        id: prepare
+        if: steps.check.outputs.has_updates == 'true'
+        run: |
+          set -euo pipefail
+          git checkout -B sync/upstream-main main
+          if git merge upstream/main --no-edit -m "chore: sync with upstream Mazamars312/Analogue-Amiga"; then
+            echo "conflicts=false" >> "$GITHUB_OUTPUT"
+          else
+            conflicted="$(git diff --name-only --diff-filter=U)"
+            git merge --abort
+            git reset --hard upstream/main
+            echo "conflicts=true" >> "$GITHUB_OUTPUT"
+            {
+              echo 'conflicted_files<<EOF'
+              echo "$conflicted"
+              echo 'EOF'
+            } >> "$GITHUB_OUTPUT"
+            echo "::warning::Upstream merge conflicts; opening a PR for manual resolution."
+          fi
+          if ! git push origin sync/upstream-main --force; then
+            echo "::error::Could not push sync/upstream-main. If the rejection above names the \`workflows\` permission, this sync carries a change under .github/workflows/ and only a PAT can push it: add a SYNC_TOKEN repository secret (classic PAT with the 'workflow' scope, or a fine-grained PAT with Contents and Workflows write)."
+            exit 1
+          fi
+
+      - name: Create or update pull request
+        if: steps.check.outputs.has_updates == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.SYNC_TOKEN || secrets.GITHUB_TOKEN }}
+          GH_REPO: ${{ github.repository }}
+          CONFLICTS: ${{ steps.prepare.outputs.conflicts }}
+          CONFLICTED_FILES: ${{ steps.prepare.outputs.conflicted_files }}
+        run: |
+          set -euo pipefail
+          if [ "$CONFLICTS" = "true" ]; then
+            title="chore: sync upstream updates from Mazamars312/Analogue-Amiga (conflicts)"
+            body=$(printf '%s\n\n%s\n\n```\n%s\n```\n\n%s\n' \
+              'Automated upstream sync from Mazamars312/Analogue-Amiga.' \
+              'Merging upstream into main conflicts, so this branch is upstream/main as-is. Conflicting files:' \
+              "$CONFLICTED_FILES" \
+              'Resolve locally: `git fetch origin && git checkout main && git merge origin/sync/upstream-main`.')
+          else
+            title="chore: sync upstream updates from Mazamars312/Analogue-Amiga"
+            body='Automated upstream sync from Mazamars312/Analogue-Amiga. Merged cleanly; please review and merge.'
+          fi
+          # Use the REST API rather than `gh pr list/edit/create`: those go through
+          # GraphQL and ask for organization fields (login, name, slug), which a
+          # PAT without `read:org` cannot read, so they fail even though the token
+          # can write to the repository. REST needs only `repo`.
+          owner="${GH_REPO%%/*}"
+          existing="$(gh api --method GET "repos/$GH_REPO/pulls" \
+            -f state=open -f base=main -f "head=$owner:sync/upstream-main" \
+            --jq '.[0].number // empty')"
+          if [ -n "$existing" ]; then
+            gh api --method PATCH "repos/$GH_REPO/pulls/$existing" \
+              -f title="$title" -f body="$body" >/dev/null
+            echo "Updated PR #$existing"
+          else
+            number="$(gh api --method POST "repos/$GH_REPO/pulls" \
+              -f title="$title" -f body="$body" -f base=main -f head=sync/upstream-main \
+              --jq '.number')"
+            echo "Created PR #$number"
+          fi

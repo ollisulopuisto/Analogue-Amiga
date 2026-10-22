@@ -104,18 +104,9 @@ void update_mouse_inputs (){
   static int32_t rem_dock_x = 0, rem_dock_y = 0;    // remainder carry, dock mouse (/MOUSE_DOCK_DIV)
   static int32_t rem_stick_x = 0, rem_stick_y = 0;  // remainder carry, analog stick (/MOUSE_STICK_DIV)
   static int32_t pending_x = 0, pending_y = 0;      // shared per-poll-capped output queue
+  uint8_t pad_btn = 0;                              // Pocket buttons acting as mouse buttons this poll
 
   bool dock_mouse = ((CONTROLLER_KEY_REG(4)>>28) == 0x5);
-
-  // Dpad mouse: Mouse Mode (toggled), Control Mode 3 (always), or R held as a
-  // momentary mouse (not in Driving, where R is the gas). Off while the
-  // on-screen keyboard is up, or its key button would also click.
-  uint32_t c1_raw = CONTROLLER_KEY_REG(1);
-  bool r_held = ((c1_raw & (1 << 9)) != 0);
-  uint8_t control_mode = (AFP_REGISTOR(6) & 0x3);
-  bool active_mouse = !keyboard_osd_showing &&
-                      (mouse_enabled || (r_held && control_mode != 2) || control_mode == 3);
-  bool face_mouse = false;
 
   if (dock_mouse) {
     // Consistent read: the bridge writes counter, then X, then Y as three
@@ -151,6 +142,9 @@ void update_mouse_inputs (){
       mouse_enqueue(&pending_y, step_y);
       mouse_counter = new_ctr;
     }
+    // Pad L/R also click while the dock mouse moves (hold a drag with the pad),
+    // except in Driving where they are brake and gas.
+    if ((AFP_REGISTOR(6) & 0x3) != 2) pad_btn = (CONTROLLER_KEY_REG(1) >> 8) & 0x3;
 
   } else if (((CONTROLLER_KEY_REG(1)>>28) == 0x3)){
     // Analog-stick mouse emulation via the dock. Both halves of the
@@ -175,32 +169,44 @@ void update_mouse_inputs (){
 
     mouse_enqueue(&pending_x, step_x);
     mouse_enqueue(&pending_y, step_y);
-
-  } else if (active_mouse) {
-    // Dpad mouse. Suppress joystick in FPGA
-    uint32_t tmp = CORE_OUTPUT_REGISTOR();
-    tmp = tmp | 0x00000030;
-    CORE_OUTPUT_REGISTOR() = tmp;
-    int32_t dx = 0, dy = 0;
-    if ((c1_raw & 0x1) == 1)       dy -= speed;
-    if (((c1_raw>>1) & 0x1) == 1)  dy += speed;
-    if (((c1_raw>>2) & 0x1) == 1)  dx -= speed;
-    if (((c1_raw>>3) & 0x1) == 1)  dx += speed;
-    mouse_enqueue(&pending_x, dx);
-    mouse_enqueue(&pending_y, dy);
-
-    // Face A = left click, Face B = right click, Face X = middle click
-    dock_btn = 0;
-    if (c1_raw & (1 << 4)) dock_btn |= (1 << 0);
-    if (c1_raw & (1 << 5)) dock_btn |= (1 << 1);
-    if (c1_raw & (1 << 6)) dock_btn |= (1 << 2);
-    face_mouse = true;
+    pad_btn = (CONTROLLER_KEY_REG(1) >> 8) & 0x3;
 
   } else {
+    uint32_t c1_raw = CONTROLLER_KEY_REG(1);
+    bool r_held = ((c1_raw & (1 << 9)) != 0);
+    // Control Mode: 0 = Standard, 1 = Platformer, 2 = Driving, 3 = Mouse
+    // interact.json writes Control Mode to 0xf0000018 (AFP_REGISTOR(6))
+    uint8_t control_mode = (AFP_REGISTOR(6) & 0x3);
+    bool is_mouse_mode = (control_mode == 3);
+    // R held is a momentary mouse, except in Driving where R is the gas pedal.
+    // Not while the on-screen keyboard is up: its key button would also click.
+    bool active_mouse = !keyboard_osd_showing &&
+                        (mouse_enabled || (r_held && control_mode != 2) || is_mouse_mode);
+
     dock_btn = 0;
-    // The on-screen keyboard keeps the joysticks off while it is up;
-    // otherwise its key button also fires (e.g. ends a name entry)
-    if (!keyboard_osd_showing) {
+    if (active_mouse) {
+      uint32_t tmp = CORE_OUTPUT_REGISTOR();
+      tmp = tmp | 0x00000030; // Suppress joystick in FPGA
+      CORE_OUTPUT_REGISTOR() = tmp;
+
+      int32_t dx = 0, dy = 0;
+      if ((c1_raw & 0x1) == 1)        dy -= speed;
+      if (((c1_raw >> 1) & 0x1) == 1) dy += speed;
+      if (((c1_raw >> 2) & 0x1) == 1) dx -= speed;
+      if (((c1_raw >> 3) & 0x1) == 1) dx += speed;
+      mouse_enqueue(&pending_x, dx);
+      mouse_enqueue(&pending_y, dy);
+
+      // Mouse buttons:
+      // Face A (bit 4) = Left click (bit 0)
+      // Face B (bit 5) = Right click (bit 1)
+      // Face X (bit 6) = Middle click (bit 2)
+      if (c1_raw & (1 << 4)) pad_btn |= (1 << 0);
+      if (c1_raw & (1 << 5)) pad_btn |= (1 << 1);
+      if (c1_raw & (1 << 6)) pad_btn |= (1 << 2);
+    } else if (!keyboard_osd_showing) {
+      // The on-screen keyboard keeps the joysticks off while it is up;
+      // otherwise its key button also fires (e.g. ends a name entry)
       uint32_t tmp = CORE_OUTPUT_REGISTOR();
       tmp = tmp & 0xFFFFFFCF;
       CORE_OUTPUT_REGISTOR() = tmp;
@@ -214,11 +220,8 @@ void update_mouse_inputs (){
   HPS_spi_uio_cmd8(UIO_MOUSE_X, x_count);
   HPS_spi_uio_cmd8(UIO_MOUSE_Y, y_count);
 
-  // Pad A/B always act as mouse buttons too (e.g. hold a drag with the pad
-  // while the dock mouse keeps moving); send once per poll, only on change,
-  // so a held dock button doesn't pulse for a single 2ms report.
-  // (Not while the dpad mouse is on: its buttons are the face bits above.)
-  uint8_t pad_btn = face_mouse ? 0 : ((CONTROLLER_KEY_REG(1) >> 8) & 0x3);
+  // Send once per poll, only on change, so a held dock button doesn't pulse
+  // for a single 2ms report.
   uint8_t btn = dock_btn | pad_btn;
   if (btn != last_btn_sent) {
     HPS_spi_uio_cmd8(UIO_MOUSE_BTN, btn);
