@@ -108,7 +108,7 @@ uint16_t cue_t::LoadCUE(int dataslot) {
 		}
 
 		/* decode TRACK commands */
-		else if ((sscanf(lptr, "TRACK %d %*s", &bb)) || (sscanf(lptr, "TRACK %d %*s", &bb)))
+		else if (sscanf(lptr, "TRACK %d %*s", &bb) == 1)
 		{
 			if (bb != (this->toc.last + 1))
 			{
