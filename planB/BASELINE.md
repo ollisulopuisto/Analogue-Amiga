@@ -163,13 +163,50 @@ Key observations:
 
 ---
 
-## 8. What requires the Quartus host (B1 hardware headroom)
+## 7b. Quartus baseline build (GitHub Actions, completed)
 
-- Full `ap_core` compile (Quartus 25.1std, Cyclone V 5CEBA4F23C8)
-- FPGA resource utilization (LEs, M9K/M10K blocks, registers)
-- Timing analysis (fmax per clock domain, setup/hold slack)
-- Clock constraint audit (`.sdc` files)
-- Bitstream generation and Pocket hardware flashing
-- On-hardware benchmark execution and measurement
+Build: Run #41790380964, Quartus 25.1std.0.1129 SC Lite, Cyclone V 5CEBA4F23C8
+Compile time: 49m2s. Artifacts: `planB/artifacts/`
 
-**Next step:** On the Quartus host, build `ap_core` and capture resource/utilization/timing baselines. Then proceed to B2 (measure current config on hardware) and B3 (identify limiting path).
+### Fit Summary (ap_core.fit.summary)
+
+| Resource | Used | Available | Utilization |
+|---|---|---|---|
+| Logic (ALMs) | 16,887 | 18,480 | **91%** |
+| Registers | 22,346 | — | — |
+| Block memory bits | 1,842,243 | 3,153,920 | 58% |
+| RAM Blocks | 237 | 308 | 77% |
+| DSP Blocks | 30 | 66 | 45% |
+| PLLs | 1 | 4 | 25% |
+
+### Timing Summary (ap_core.sta.summary) — Worst setup slacks
+
+| Clock Domain | Model | Slack | TNS |
+|---|---|---|---|
+| clk_74a (74.25 MHz) | Slow 1100mV 85C | **-7.555 ns** | -1468 |
+| clk_114 (~113.5 MHz, PLL C0) | Slow 1100mV 85C | **-6.759 ns** | -1530 |
+| clk_sys (~28.4 MHz, PLL C1) | Slow 1100mV 85C | **-5.939 ns** | -1863 |
+
+**Critical finding:** The design has **severe setup timing violations** on all three clock domains at the current frequencies. Setup slack is -5 to -7.5 ns, meaning the design cannot meet timing even at stock clock speeds.
+
+### Implications for Plan B acceleration
+
+1. **Clock increase is NOT viable** — timing already fails at stock frequencies. Cannot speed up the TG68K by raising clk_sys.
+2. **Very limited logic headroom** — 91% ALM utilization leaves only ~9% (≈1,600 ALMs) for any acceleration logic.
+3. **Memory headroom exists** — 58% block memory bits, 77% RAM blocks. Cache capacity increases are feasible from a memory standpoint.
+4. **DSP headroom** — 45% available, but DSPs aren't on the critical CPU/memory path.
+
+### Viable acceleration candidates (given constraints)
+
+| Candidate | Viability | Reasoning |
+|---|---|---|
+| Remove wait states / improve arbitration | Low-Medium | Timing already critical; harder to close timing with changes |
+| Cache capacity increase | Medium | Memory headroom exists; 9% ALM headroom is tight but possible |
+| Wider transfers / burst | Low | Would increase logic usage and worsen timing |
+| Clock increase | NOT viable | Timing violations at stock speeds |
+
+### Next steps
+
+- **B3 (identify limiting path):** Analyze the detailed timing report paths to find the exact critical path (likely SDRAM controller + cache data path at clk_114). Then determine whether cache optimization or arbitration improvement can close timing while improving performance.
+- **B2 (measure on hardware):** Requires Pocket hardware — not available in this environment. Needs physical Pocket to run benchmarks with the built bitstream.
+- **B4 (implement):** Given the constraints, the most promising path is cache capacity/organization optimization (fits in memory headroom, limited ALM cost). Clock and width increases are ruled out by timing/ALM constraints.
