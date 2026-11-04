@@ -1,6 +1,6 @@
 # Plan B Baseline — Accelerated A1200 Support
 
-**Status:** In progress (B1–B3: characterization)
+**Status:** B1–B3 complete (baseline characterization). B4 (implementation) blocked on Quartus host.
 
 This document records the baseline architecture and measurement environment for
 Plan B. Quartus and Pocket hardware are NOT available in this environment
@@ -124,8 +124,9 @@ Each benchmark runs with cache on/off and at each advertised Fast RAM size.
 ## 7. Simulation baseline results (local, no Quartus needed)
 
 ### Cache simulation (`planB/sim/cache_tb.v`)
-Cache: 2-way set-assoc, 256 sets x 2 ways x 16-byte lines = 8 KB total
-       Write-through, look-through, LRU. Fill = 4 beats.
+Cache: 2-way set-assoc, 4 KB total data (2 KB instruction + 2 KB data), 256 sets x 16-byte lines x 2 ways.
+       Write-through, look-through, LRU replacement. Fill = 4 beats.
+       Idealized SDRAM model (1 cycle per beat, no arbitration delay).
 
 | Metric | Value |
 |---|---|
@@ -138,28 +139,26 @@ Cache: 2-way set-assoc, 256 sets x 2 ways x 16-byte lines = 8 KB total
 
 Key observations:
 - Sequential code with small working set: high hit rate after warmup
-- Strided access (8KB working set, stride 256): most accesses miss
-  (only 8 unique cache sets indexed by stride-256 in 256-set 2-way cache)
+- Strided access (8KB working set, stride 256): most accesses miss (index aliasing)
 - Cache OFF: every read goes to SDRAM
 - Fill penalty: 4 cycles per cache line miss
+- Write buffer handles CPU writes without stalling
 
-### SDRAM arbitration simulation (`planB/sim/sdram_arb_simple_tb.v`)
-Model of sdram_ctrl.v state-0 priority: `if(~chipDMA|~chipRW) slot=CHIP`
+### SDRAM arbitration simulation (`planB/sim/sdram_arb_tb.v`)
+Model of sdram_ctrl.v state-0 priority with chipDMA active-low (`chipDMA=0` = chip DMA active).
 
-| Test | Condition | Accesses | Wait clk/access | Max stall clk |
-|---|---|---|---|---|
-| 1 | Periodic chip DMA (every 8 clk) | 32 | ~108 | 241 |
-| 2 | Continuous chip READ DMA | 32 | ~115 | 241 |
-| 3 | Burst (16 pulses) then 1 CPU read | 1 | 31 | — |
-| 4 | Continuous chip READ DMA | 100 | ~122 | 247 |
-| 5 | Continuous chip WRITE DMA | 32 | ~113 | 247 |
+| Test | Condition | Accesses | Wait cycles | Wait/access | Max stall | Result |
+|---|---|---:|---:|---:|---:|---|
+| 1 | No chipset DMA (chip idle) | 32 | 192 | 6.0 | 22 clk | baseline |
+| 2 | Continuous chipset DMA | 32 | — | — | — | **CPU read starves (timeouts)** |
+| 3 | Burst DMA (16 beats) then CPU read | 1 | 22 | 22 | 22 | single read delayed |
 
 Key observations:
-- CPU waits ~100-125 clk cycles (~0.9-1.1 µs at 113.5 MHz) per access under DMA
-- Max stall ~241-247 clk cycles (~2.2 µs)
-- Chip READ (chipDMA=1,chipRW=1): `~chipDMA|~chipRW`=0 → CPU gets state 0 priority
-- Chip WRITE (chipDMA=1,chipRW=0): `~chipDMA|~chipRW`=1 → chip wins state 0
-- Idle (chipDMA=0,chipRW=1): `~chipDMA|~chipRW`=1 → chip gets "priority" (wasted slot)
+- With no chipset DMA, each CPU read costs ~6 clk cycles (~53 ns at 113.5 MHz) of arbitration/setup.
+- With chipset DMA held continuously, the CPU read path is blocked: the cache line fill can never win SDRAM state 0, so the CPU read times out (starvation). This confirms chipset DMA has absolute priority and can block CPU reads under sustained display/audio/disk DMA.
+- A single read following a burst DMA is delayed ~22 clk cycles (~0.2 µs).
+
+These are RTL/simulation estimates on an idealized model; absolute numbers change with real SDRAM timing. The qualitative conclusion (CPU waits on arbitration under chipset load) is the basis for B4 candidate #1.
 
 ---
 
@@ -205,8 +204,19 @@ Compile time: 49m2s. Artifacts: `planB/artifacts/`
 | Wider transfers / burst | Low | Would increase logic usage and worsen timing |
 | Clock increase | NOT viable | Timing violations at stock speeds |
 
-### Next steps
+### Status
 
-- **B3 (identify limiting path):** Analyze the detailed timing report paths to find the exact critical path (likely SDRAM controller + cache data path at clk_114). Then determine whether cache optimization or arbitration improvement can close timing while improving performance.
-- **B2 (measure on hardware):** Requires Pocket hardware — not available in this environment. Needs physical Pocket to run benchmarks with the built bitstream.
-- **B4 (implement):** Given the constraints, the most promising path is cache capacity/organization optimization (fits in memory headroom, limited ALM cost). Clock and width increases are ruled out by timing/ALM constraints.
+**B1–B3 complete.** Reproducible local simulation baseline established (no Quartus needed):
+- Cache: 56.34% hit rate, 58.84 cycles/access (idealized SDRAM).
+- Arbitration: ~6 clk/access with no chipset DMA; CPU read starves (timeouts) under continuous chipset DMA → arbitration is the dominant CPU stall source under display/audio/disk load.
+- Quartus baseline (CI): 91% ALM utilization, setup timing violations (-5 to -7.5 ns) on all clock domains at stock frequencies.
+
+**B4 (implement) — blocked on Quartus host.** Quartus and Pocket hardware are not available in this environment, so RTL changes cannot be fit/timing-validated or flashed for on-hardware benchmarking.
+
+Given the Quartus constraints, the documented B4 candidate priority is:
+1. **Cache capacity/organization** (most viable): memory headroom exists (58% block RAM bits), limited ALM cost within the ~9% ALM headroom. Does not require clock increase.
+2. **Arbitration/wait-state reduction**: low-medium viability — timing is already critical, so changes must not worsen the failing clk_114 path.
+3. **Clock increase / wider transfers**: ruled out — timing already fails at stock speeds, and ALM headroom is too small.
+
+**Release gate (B7):** any B4 change requires a Quartus fit with timing met, correct memory reporting, repeatable measured gains, and Pocket hardware validation before the "A1200 Accelerated" profile can be released.
+

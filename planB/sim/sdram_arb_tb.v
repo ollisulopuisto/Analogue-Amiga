@@ -14,7 +14,7 @@
 // if chipset is idle. Under heavy chipset DMA (display/audio/disk), CPU
 // waits.
 //
-// Compile: iverilog -o sdram_arb_tb.vvp sdram_arb_tb.v dpram_sim.v sdram_ctrl.v cpu_cache_new.v
+// Compile: iverilog -g2012 -o sdram_arb_tb.vvp sdram_arb_tb.v sdram_ctrl_sim.v cpu_cache_new.v dpram_sim.v
 // Run:     vvp sdram_arb_tb.vvp
 
 module sdram_arb_tb;
@@ -31,24 +31,25 @@ module sdram_arb_tb;
     // Reset
     reg reset_n = 0;
 
-    // SDRAM controller interface
-    reg         sd_we = 1;
-    reg         sd_ras = 1;
-    reg         sd_cas = 1;
-    reg  [1:0]  sd_dqm = 3;
-    reg         sd_clk = 0;
+    // SDRAM controller outputs (DUT drives these; testbench observes)
     wire [12:0] sd_addr;
     wire  [1:0] sd_ba;
     wire        sd_cs;
-    wire [15:0] sd_data;
+    wire        sd_we;
+    wire        sd_ras;
+    wire        sd_cas;
+    wire  [1:0] sd_dqm;
+    wire        sd_clk;
     wire        sd_cke;
 
-    // SDRAM data inout model
-    reg [15:0] sd_data_drive = 16'hzzzz;
+    // SDRAM data model: testbench drives read data into sd_data_in;
+    // DUT drives write data out on sd_data_out.
+    reg [15:0] sd_data_drive = 16'h0000;
     reg        sd_data_oe = 0;
-    assign sd_data = sd_data_oe ? sd_data_drive : 16'hzzzz;
+    wire [15:0] sd_data_out;
+    wire [15:0] sd_data_in = sd_data_oe ? sd_data_drive : 16'hzzzz;
 
-    // Chip interface
+    // Chip interface (inputs to DUT)
     reg  [22:1] chipAddr = 0;
     reg         chipL = 0;
     reg         chipU = 0;
@@ -58,7 +59,7 @@ module sdram_arb_tb;
     wire [15:0] chipRD;
     wire [47:0] chip48;
 
-    // CPU interface
+    // CPU interface (inputs to DUT)
     reg  [25:1] cpuAddr = 0;
     reg         cpuCS = 0;
     reg  [1:0]  cpustate = 1;
@@ -73,18 +74,18 @@ module sdram_arb_tb;
 
     // SDRAM memory model
     reg [15:0] sdram_mem [0:65535];
-    reg [12:0] last_rd_addr = 0;
 
     // Instantiate SDRAM controller (includes cache internally)
     sdram_ctrl dut (
         .sysclk        (clk),
         .c_7m          (c_7m),
         .reset_n       (reset_n),
-        .cache_rst     (1'b0),
+        .cache_rst     (1'b1),
         .cache_inhibit (1'b0),
         .cpu_cache_ctrl(cpu_cache_ctrl),
 
-        .sd_data       (sd_data),
+        .sd_data_in      (sd_data_in),
+        .sd_data_out     (sd_data_out),
         .sd_addr       (sd_addr),
         .sd_dqm        (sd_dqm),
         .sd_ba         (sd_ba),
@@ -113,25 +114,23 @@ module sdram_arb_tb;
         .ramready      (ramready)
     );
 
-    // SDRAM read data model
+    // SDRAM data model: testbench drives read data into sd_data_in;
+    // DUT drives write data out on sd_data_out.
+
+    // SDRAM read data model: drive data into sd_data_in during CAS read cycle
     always @(posedge clk) begin
-        // DUT drives sd_data during write CAS cycle (state 2)
-        // We drive during read CAS cycle
         sd_data_oe <= 0;
         if (!sd_we && !sd_cas && !sd_ras && sd_clk) begin
-            // CAS read cycle — provide data
+            // CAS read cycle — provide data to DUT input
             sd_data_drive <= sdram_mem[sd_addr[12:1]];
             sd_data_oe <= 1;
-            last_rd_addr <= sd_addr[12:1];
         end
     end
-
-    // Memory write model (DUT drives sd_data, we capture it)
+    // Memory write model: capture data written by DUT on sd_data_out
     always @(posedge clk) begin
         if (!sd_ras && !sd_cas && sd_we && sd_clk && sd_addr[12:11] != 2'b00) begin
-            // Write cycle with DQM from sd_addr[12:11]
-            if (sd_addr[11] == 0) sdram_mem[sd_addr[12:1]][7:0]   <= sd_data;
-            if (sd_addr[12] == 0) sdram_mem[sd_addr[12:1]][15:8] <= sd_data;
+            if (sd_addr[11] == 0) sdram_mem[sd_addr[12:1]][7:0]   <= sd_data_out;
+            if (sd_addr[12] == 0) sdram_mem[sd_addr[12:1]][15:8] <= sd_data_out;
         end
     end
 
@@ -184,13 +183,13 @@ module sdram_arb_tb;
     end
     endtask
 
-    // Task: perform a chipset DMA access (held for 1 clk cycle, picked up on c_7m)
+    // Task: perform a chipset DMA access
     task chip_dma;
         input [22:1] addr;
         input        write;
     begin
         @(posedge clk);
-        chipDMA <= 1;
+        chipDMA <= 0;  // chipDMA active-low: 0 = chip DMA active
         chipAddr <= addr;
         chipRW   <= write ? 0 : 1;
         chipL    <= 0;
@@ -199,7 +198,7 @@ module sdram_arb_tb;
         chip_accesses <= chip_accesses + 1;
 
         @(posedge clk);
-        chipDMA <= 0;
+        chipDMA <= 1;  // end DMA (chip idle)
         chipRW   <= 1;
     end
     endtask
@@ -216,13 +215,13 @@ module sdram_arb_tb;
         reset_n = 1;
         #40;
 
-        // Wait for SDRAM init (init_done -> ramready works)
+        // Wait for SDRAM init
         repeat (1000) @(posedge clk);
         $display("SDRAM init complete at cycle %0d", total_cycles);
 
         // Test 1: CPU reads with NO chipset DMA (baseline)
         $display("\n--- Test 1: CPU reads, no chipset DMA ---");
-        chipDMA <= 0;
+        chipDMA <= 1;  // chipDMA active-low: 1 = chip idle, CPU gets state 0
         for (integer i = 0; i < 32; i = i + 1) begin
             cpu_read(25'h10000 + i);
         end
@@ -230,16 +229,24 @@ module sdram_arb_tb;
         $display("CPU accesses: %0d, wait cycles: %0d, max stall: %0d",
                  cpu_accesses, cpu_wait_cycles, cpu_stall_max);
 
-        // Test 2: CPU reads with HEAVY chipset DMA (every cycle)
+        // Test 2: CPU reads with HEAVY chipset DMA (chip DMA held active continuously)
         $display("\n--- Test 2: CPU reads with continuous chipset DMA ---");
         t1_wait = cpu_wait_cycles;
         t1_acc = cpu_accesses;
         t1_max = cpu_stall_max;
 
+        // Hold chipset DMA active (chipDMA=0) for the whole test window
+        chipDMA <= 0;  // chipDMA active-low: 0 = chip DMA active
+        chipRW   <= 0;
+        chipL    <= 0;
+        chipU    <= 0;
+        chipWR   <= 16'h55aa;
+        chipAddr <= 22'h20000;
         for (integer i = 0; i < 32; i = i + 1) begin
-            chip_dma(22'h20000 + i, 0);
             cpu_read(25'h30000 + i);
         end
+        chipDMA <= 1;  // end DMA (chip idle)
+        chipRW   <= 1;
 
         $display("CPU accesses: %0d, wait cycles: %0d, max stall: %0d",
                  cpu_accesses - t1_acc,

@@ -45,7 +45,8 @@ module sdram_ctrl
 	output reg        sd_ras,
 	output reg        sd_cas,
 	output reg  [1:0] sd_dqm,
-	inout  reg [15:0] sd_data,
+	input  wire [15:0] sd_data_in,
+	output reg  [15:0] sd_data_out,
 	output reg        sd_clk,
 	output            sd_cke,
 	// chip
@@ -259,11 +260,11 @@ always @ (posedge sysclk) begin
 		sd_ras                <= 1;
 		sd_cas                <= 1;
 		sd_we                 <= 1;
-		sd_data               <= 16'hZZZZ;
+		sd_data_out           <= 16'hZZZZ;
 		chipWE                <= 0;
 	end
 
-	if(sdram_state[0]) sdata_reg <= sd_data;
+	if(sdram_state[0]) sdata_reg <= sd_data_in;
 
 	if(!init_done) begin
 		slot_type             <= IDLE;
@@ -349,7 +350,7 @@ always @ (posedge sysclk) begin
 				sd_cas          <= cas_sd_cas;
 				sd_dqm          <= 0;
 				if(!cas_sd_we) begin
-					sd_data      <= datawr;
+					sd_data_out  <= datawr;
 					sd_addr[12:11]<= cas_dqm;
 					sd_dqm       <= cas_dqm;
 					sd_we        <= 0;
