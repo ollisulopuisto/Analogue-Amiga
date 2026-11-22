@@ -14,9 +14,10 @@ REPO_ROOT := ../../../../..
 
 .PHONY: test clean
 
-test: test_mouse_math test_input_update_firmware
+test: test_mouse_math test_input_update_firmware test_input_poll_snapshots
 	./test_mouse_math
 	./test_input_update_firmware
+	./test_input_poll_snapshots
 
 test_mouse_math: test_mouse_math.c ../mouse_math.h
 	$(CC) $(CFLAGS) $(DEPFLAGS) -o test_mouse_math test_mouse_math.c
@@ -27,7 +28,12 @@ test_mouse_math: test_mouse_math.c ../mouse_math.h
 test_input_update_firmware: $(REPO_ROOT)/tests/test_input_update_firmware.cpp ../inputs.cpp
 	$(CXX) $(CXXFLAGS) $(DEPFLAGS) -I$(REPO_ROOT)/tests/firmware_support -I.. -o $@ $(REPO_ROOT)/tests/test_input_update_firmware.cpp
 
--include test_mouse_math.d test_input_update_firmware.d
+# Pins the per-poll read counts of the shared CONTROLLER_KEY_REG(1) /
+# CONTROLLER_JOY_REG(1) snapshots in the real input_update().
+test_input_poll_snapshots: $(REPO_ROOT)/tests/test_input_poll_snapshots.cpp ../inputs.cpp
+	$(CXX) $(CXXFLAGS) $(DEPFLAGS) -I$(REPO_ROOT)/tests/firmware_support -I.. -o $@ $(REPO_ROOT)/tests/test_input_poll_snapshots.cpp
+
+-include test_mouse_math.d test_input_update_firmware.d test_input_poll_snapshots.d
 
 clean:
 	rm -f test_mouse_math test_input_update_firmware *.d
