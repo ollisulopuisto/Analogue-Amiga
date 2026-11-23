@@ -55,7 +55,7 @@ void input_allow_osd(bool keyboard_active){
   mainprintf ("Active %d\r\n", keyboard_osd_showing);
 }
 
-void update_mouse_inputs (uint16_t speed){
+void update_mouse_inputs (uint16_t speed, uint32_t c1_raw){
   // Performance optimization:
   // update_mouse_inputs() runs on every mouse polling cycle (~every 2ms).
   // 1. Snapshot CONTROLLER_KEY_REG(1) once at the start into c1_raw instead of
@@ -68,7 +68,9 @@ void update_mouse_inputs (uint16_t speed){
   //    thousands of redundant SPI transactions.
   // 3. Mouse speed is received directly from input_update()'s snapshot of
   //    AFP_REGISTOR(5), avoiding an extra volatile MMIO read per poll.
-  const uint32_t c1_raw = CONTROLLER_KEY_REG(1);
+  // 4. c1_raw arrives as input_update()'s snapshot of CONTROLLER_KEY_REG(1):
+  //    one volatile MMIO read serves both the mouse handling and the
+  //    shortcut checks of the same poll (previously read twice per poll).
   mouse_enabled_press = ((c1_raw >> 15) & 0x1) ; //|| ( ((c1_raw>>28) == 0x3) && ((c1_raw >> 15) & 0x1))
   if (keyboard_osd_showing == 1) {
     mouse_enabled = 0;
@@ -160,8 +162,12 @@ void update_mouse_inputs (uint16_t speed){
     // 0x80-x / x-0x80 it wrapped to a huge value on whichever side wasn't
     // the one the subtraction was written for, corrupting x_count/y_count.
     dock_btn = 0;
-    signed short x = (signed short)(CONTROLLER_JOY_REG(1) & 0x000000FF);
-    signed short y = (signed short)((CONTROLLER_JOY_REG(1)>>8) & 0x000000FF);
+    // Snapshot the stick register once per poll: both axes come from the
+    //    same sample (previously two volatile MMIO reads per poll, with the
+    //    stick free to move between the x and y reads).
+    const uint32_t joy1 = CONTROLLER_JOY_REG(1);
+    signed short x = (signed short)(joy1 & 0x000000FF);
+    signed short y = (signed short)((joy1>>8) & 0x000000FF);
 
     int16_t dx = 0, dy = 0;
     if (x < 0x70 || x > 0x90) dx = (int16_t)(x - 0x80);
@@ -398,11 +404,13 @@ void input_update() {
     // volatile MMIO reads over the APF bridge per poll (~1,000 reads/sec).
     const uint32_t afp5 = AFP_REGISTOR(5);
     uint8_t afp5_top = (uint8_t)(afp5 >> 24);
+    // One CONTROLLER_KEY_REG(1) snapshot per poll, shared by the mouse
+    // handling and the shortcut checks below (previously one read each).
+    uint32_t c1 = CONTROLLER_KEY_REG(1);
     if ((afp5_top == 0x80) | (afp5_top == 0xa0)) {
-      update_mouse_inputs((uint16_t)(afp5 & 0xffff));
+      update_mouse_inputs((uint16_t)(afp5 & 0xffff), c1);
     }
     bool is_cd32 = (((afp5 >> 28) & 0x2) != 0);
-    uint32_t c1 = CONTROLLER_KEY_REG(1);
     // Shortcut for disk swap: Hold L (bit 8) and press Select (bit 14) while virtual keyboard is not showing
     bool mod_l = (c1 & (1 << 8)) != 0;
     bool btn_select = (c1 & (1 << 14)) != 0;
